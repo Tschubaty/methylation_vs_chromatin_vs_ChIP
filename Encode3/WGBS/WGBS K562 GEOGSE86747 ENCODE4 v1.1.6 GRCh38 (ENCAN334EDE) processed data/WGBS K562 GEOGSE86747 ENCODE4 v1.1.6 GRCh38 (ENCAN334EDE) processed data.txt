@@ -1,0 +1,3 @@
+"https://www.encodeproject.org/metadata/?files.output_type=methylation+state+at+CpG&files.file_type=bed+bed9%2B&type=Experiment&%40id=%2Fexperiments%2FENCSR765JPC%2F&files.processed=true"
+https://www.encodeproject.org/files/ENCFF660IHA/@@download/ENCFF660IHA.bed.gz
+https://www.encodeproject.org/files/ENCFF328NMN/@@download/ENCFF328NMN.bed.gz

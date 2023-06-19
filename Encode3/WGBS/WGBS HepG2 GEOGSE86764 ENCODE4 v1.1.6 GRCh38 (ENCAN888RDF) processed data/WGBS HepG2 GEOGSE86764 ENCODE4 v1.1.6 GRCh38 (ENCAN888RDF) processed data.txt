@@ -1,0 +1,5 @@
+"https://www.encodeproject.org/metadata/?files.file_type=bed+bedMethyl&files.file_type=bed+bed9%2B&files.output_type=methylation+state+at+CpG&type=Experiment&%40id=%2Fexperiments%2FENCSR881XOU%2F&files.processed=true"
+https://www.encodeproject.org/files/ENCFF847OWL/@@download/ENCFF847OWL.bed.gz
+https://www.encodeproject.org/files/ENCFF390OZB/@@download/ENCFF390OZB.bed.gz
+https://www.encodeproject.org/files/ENCFF817LMT/@@download/ENCFF817LMT.bed.gz
+https://www.encodeproject.org/files/ENCFF453UDK/@@download/ENCFF453UDK.bed.gz
