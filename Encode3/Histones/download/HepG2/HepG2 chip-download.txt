@@ -1,0 +1,13 @@
+"https://www.encodeproject.org/metadata/?assay_title=Histone+ChIP-seq&biosample_ontology.term_name=HepG2&lab.title=Bradley+Bernstein%2C+Broad&status=released&files.file_format=bed&files.lab.title=ENCODE+Processing+Pipeline&type=Experiment&cart=%2Fcarts%2Fadeca5ee-6014-470b-8596-06fdc4facbbe%2F&files.assembly=GRCh38&files.analyses.status=released&files.preferred_default=true"
+https://www.encodeproject.org/files/ENCFF489ZNJ/@@download/ENCFF489ZNJ.bed.gz
+https://www.encodeproject.org/files/ENCFF811ZMQ/@@download/ENCFF811ZMQ.bed.gz
+https://www.encodeproject.org/files/ENCFF982DUT/@@download/ENCFF982DUT.bed.gz
+https://www.encodeproject.org/files/ENCFF946FQI/@@download/ENCFF946FQI.bed.gz
+https://www.encodeproject.org/files/ENCFF303VCJ/@@download/ENCFF303VCJ.bed.gz
+https://www.encodeproject.org/files/ENCFF044QMC/@@download/ENCFF044QMC.bed.gz
+https://www.encodeproject.org/files/ENCFF535ULI/@@download/ENCFF535ULI.bed.gz
+https://www.encodeproject.org/files/ENCFF500KVU/@@download/ENCFF500KVU.bed.gz
+https://www.encodeproject.org/files/ENCFF372HCL/@@download/ENCFF372HCL.bed.gz
+https://www.encodeproject.org/files/ENCFF392KDI/@@download/ENCFF392KDI.bed.gz
+https://www.encodeproject.org/files/ENCFF413EGR/@@download/ENCFF413EGR.bed.gz
+https://www.encodeproject.org/files/ENCFF637QOV/@@download/ENCFF637QOV.bed.gz

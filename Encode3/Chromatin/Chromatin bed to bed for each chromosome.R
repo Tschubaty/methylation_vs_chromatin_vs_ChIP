@@ -89,46 +89,27 @@ CHR_NAMES <-
     "chr22"
   )
 #######################################################################################
-# WGBS files
-input_files <-
-  c(
-    file.path(
-      "WGBS K562 GEOGSE86747 ENCODE4 v1.1.6 GRCh38 (ENCAN334EDE) processed data",
-      "ENCFF660IHA.bed"
-    ),
-    file.path(
-      "WGBS K562 GEOGSE86747 ENCODE4 v1.1.6 GRCh38 (ENCAN334EDE) processed data",
-      "ENCFF328NMN.bed"
-    ),
-    file.path(
-      "WGBS HepG2 GEOGSE127318 ENCODE4 v1.1.6 GRCh38 (ENCAN831UDN) processed data",
-      "ENCFF820ATI.bed"
-    ),
-    file.path(
-      "WGBS HepG2 GEOGSE127318 ENCODE4 v1.1.6 GRCh38 (ENCAN831UDN) processed data",
-      "ENCFF690FNR.bed"
-    ),
-    file.path(
-      "WGBS HepG2 GEOGSE86764 ENCODE4 v1.1.6 GRCh38 (ENCAN888RDF) processed data",
-      "ENCFF817LMT.bed"
-    ),
-    file.path(
-      "WGBS HepG2 GEOGSE86764 ENCODE4 v1.1.6 GRCh38 (ENCAN888RDF) processed data",
-      "ENCFF453UDK.bed"
-    )
-  )
+# file
+# E123 = K562
+#E118 = HepG2
+
+sample_names <- c("K562", "HepG2")
+
+input_files <- c(K562 = "E123_18_core_K27ac_hg38lift_dense.bed",HepG2 = "E118_18_core_K27ac_hg38lift_dense.bed")
 #
-data_names <-
-  gsub(pattern = ".bed",
-       replacement = "",
-       x = input_files)
-data_names <-
-  gsub(pattern = "GEO.*.data/",
-       replacement = "",
-       x = data_names)
-data_names <- gsub(pattern = " ",
-                   replacement = "_",
-                   x = data_names)
+output_folder <- "by_chr"
+
+# data_names <-
+#   gsub(pattern = ".bed",
+#        replacement = "",
+#        x = input_files)
+# data_names <-
+#   gsub(pattern = "GEO.*.data/",
+#        replacement = "",
+#        x = data_names)
+# data_names <- gsub(pattern = " ",
+#                    replacement = "_",
+#                    x = data_names)
 
 ############################ run script ####################
 #f <- 1
@@ -136,7 +117,9 @@ for (f in 1:length(input_files)) {
   
   input_file <- input_files[f]
   
-  WGBS <- read.table(file = input_file)
+  bed <- readRDS("combined_annaotation.rds")
+  
+  #bed <- read.table(file = input_file,row.names = FALSE,col.names = FALSE,skip = 5)
   
   # Each column represents the following:
   #
@@ -156,7 +139,7 @@ for (f in 1:length(input_files)) {
   # 14 - Quality score for genotype call
   
   
-  colnames(WGBS) <- c(
+  colnames(bed) <- c(
     "chr",
     "start",
     "end",

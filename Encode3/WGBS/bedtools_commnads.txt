@@ -1,0 +1,11 @@
+mewme wopkrs : 
+docker run -v "C:\Users\Daniel Batyrev\Documents\GitHub\methylation_vs_chromatin_vs_ChIP\Encode3\meme":/home/meme -d memesuite/memesuite:latest
+
+docker bed wokrs:
+docker run --rm -v "C:\Users\Daniel Batyrev\Documents\GitHub\methylation_vs_chromatin_vs_ChIP\Encode3":/home/Encode3 pegi3s/bedtools:latest ls home/Encode3/WGBS/out_bed
+
+
+original:
+docker run --rm -v "/c/Users/User_name/dir/":/data pegi3s/bedtools <bedtools-application-name> -fi <input FASTA> -bed <BED/GFF/VCF> -fo /data/stdout
+
+docker run --rm -v "C:\Users\Daniel Batyrev\Documents\GitHub\methylation_vs_chromatin_vs_ChIP\Encode3":/home/Encode3 pegi3s/bedtools:latest intersectBed -loj -a home/Encode3/WGBS/out_bed/chr21.merge.bed -b home/Encode3/Chromatin/by_chr/chr21.chromatin.bed > chr21.WGBS.CHROMATN.bed

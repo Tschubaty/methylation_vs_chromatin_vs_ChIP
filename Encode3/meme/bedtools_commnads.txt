@@ -1,0 +1,4 @@
+original:
+docker run --rm -v "/c/Users/User_name/dir/":/data pegi3s/bedtools <bedtools-application-name> -fi <input FASTA> -bed <BED/GFF/VCF> -fo /data/stdout
+
+docker run --rm -v "/c/Users/User_name/dir/":/data pegi3s/bedtools <bedtools-application-name> -fi <input FASTA> -bed <BED/GFF/VCF> -fo /data/stdout

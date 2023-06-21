@@ -1,0 +1,6 @@
+https://egg2.wustl.edu/roadmap/figures/mainFigs/Figure_4.jpg
+https://egg2.wustl.edu/roadmap/figures/extendedData/Figure_ED2.jpg
+https://egg2.wustl.edu/roadmap/web_portal/chr_state_learning.html#rep
+https://egg2.wustl.edu/roadmap/data/byFileType/chromhmmSegmentations/ChmmModels/core_K27ac/jointModel/final/
+E123 = K562
+E118 = HepG2

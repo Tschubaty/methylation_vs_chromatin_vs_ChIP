@@ -1,0 +1,14 @@
+"https://www.encodeproject.org/metadata/?assay_title=Histone+ChIP-seq&biosample_ontology.term_name=K562&lab.title=Bradley+Bernstein%2C+Broad&status=released&files.file_format=bed&files.lab.title=ENCODE+Processing+Pipeline&type=Experiment&cart=%2Fcarts%2Fk562-histones%2F&files.assembly=GRCh38&files.analyses.status=released&files.preferred_default=true"
+https://www.encodeproject.org/files/ENCFF749KLQ/@@download/ENCFF749KLQ.bed.gz
+https://www.encodeproject.org/files/ENCFF689QIJ/@@download/ENCFF689QIJ.bed.gz
+https://www.encodeproject.org/files/ENCFF891CHI/@@download/ENCFF891CHI.bed.gz
+https://www.encodeproject.org/files/ENCFF213OTI/@@download/ENCFF213OTI.bed.gz
+https://www.encodeproject.org/files/ENCFF209OQD/@@download/ENCFF209OQD.bed.gz
+https://www.encodeproject.org/files/ENCFF135ZLM/@@download/ENCFF135ZLM.bed.gz
+https://www.encodeproject.org/files/ENCFF462AVD/@@download/ENCFF462AVD.bed.gz
+https://www.encodeproject.org/files/ENCFF323WOT/@@download/ENCFF323WOT.bed.gz
+https://www.encodeproject.org/files/ENCFF193ERO/@@download/ENCFF193ERO.bed.gz
+https://www.encodeproject.org/files/ENCFF909RKY/@@download/ENCFF909RKY.bed.gz
+https://www.encodeproject.org/files/ENCFF885FQN/@@download/ENCFF885FQN.bed.gz
+https://www.encodeproject.org/files/ENCFF963GZJ/@@download/ENCFF963GZJ.bed.gz
+https://www.encodeproject.org/files/ENCFF544LXB/@@download/ENCFF544LXB.bed.gz

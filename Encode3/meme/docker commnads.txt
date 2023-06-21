@@ -1,0 +1,16 @@
+docker run -v "C:\Users\Daniel Batyrev\Documents\GitHub\methylation_vs_chromatin_vs_ChIP\Encode3\meme":/home/meme -d pegi3s/bedtools:latest ls /home/meme
+# works
+docker run -v "C:\Users\Daniel Batyrev\Documents\GitHub\methylation_vs_chromatin_vs_ChIP\Encode3\meme":/home/meme -d memesuite/memesuite:latest 
+
+docker run -v "C:\Users\Daniel Batyrev\Documents\GitHub\methylation_vs_chromatin_vs_ChIP\Encode3\meme" pegi3s/bedtools bedtools getfasta -fo /home/meme/HepG2_AGO1-human_ENCFF225YFT.fa -fi /home/meme/hg38.fa -bed /home/meme/HepG2_AGO1-human_ENCFF225YFT.bed
+
+
+meme-chip -oc . -time 240 -ccut 100 -fdesc description -dna -order 2 -minw 6 -maxw 15 --parse-genomic-coord -db /opt/meme/share/meme-5.5.3/db/motif_databases/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme -meme-mod zoops -meme-nmotifs 3 -meme-searchsize 100000 -streme-pvt 0.05 -streme-align center -streme-totallength 4000000 -centrimo-score 5.0 -centrimo-ethresh 10.0 HepG2_ZBTB3-human_ENCFF972RKU.fa
+
+#original
+meme-chip -oc . -time 240 -ccut 100 -fdesc description -dna -order 2 -minw 6 -maxw 15 --parse-genomic-coord -db db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme -meme-mod zoops -meme-nmotifs 3 -meme-searchsize 100000 -streme-pvt 0.05 -streme-align center -streme-totallength 4000000 -centrimo-score 5.0 -centrimo-ethresh 10.0 ENCFF973SAV.bed.fa
+# docker version: #                                                                                             /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme
+meme-chip -oc . -time 240 -ccut 200 -dna -order 2 -minw 6 -maxw 15 --parse-genomic-coord -db /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme -meme-mod zoops -meme-nmotifs 3 -meme-searchsize 10000 -streme-pvt 0.05 -streme-align center -streme-totallength 4000000 -centrimo-score 5.0 -centrimo-ethresh 10.0 HepG2_ZBTB3-human_ENCFF972RKU.fa
+
+
+meme-chip -oc "HepG2_ZBTB3-human_ENCFF972RKU" -time 240 -ccut 200 -dna -order 2 -minw 6 -maxw 15 --parse-genomic-coord -db /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme -meme-mod zoops -meme-nmotifs 3 -meme-searchsize 10000 -streme-pvt 0.05 -streme-align center -streme-totallength 4000000 -centrimo-score 5.0 -centrimo-ethresh 10.0 HepG2_ZBTB3-human_ENCFF972RKU.fa

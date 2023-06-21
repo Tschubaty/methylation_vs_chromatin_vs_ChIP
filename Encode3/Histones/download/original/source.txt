@@ -1,0 +1,4 @@
+https://egg2.wustl.edu/roadmap/data/byFileType/peaks/consolidated/narrowPeak/
+
+E123 = K562
+E118 = HepG2

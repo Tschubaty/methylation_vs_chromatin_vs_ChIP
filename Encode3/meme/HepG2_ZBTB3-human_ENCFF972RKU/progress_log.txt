@@ -1,0 +1,206 @@
+Invoking:
+  getsize HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa 1> $metrics
+Finished invoke:
+  name: count_seqs  status: 0  time: 0.160505
+Invoking:
+  fasta-most -min 50 < HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa 1> $metrics
+Finished invoke:
+  name: most_seqs  status: 0  time: 0.116246
+Invoking:
+  fasta-center -dna -len 200 --parse-genomic-coord < HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa 1> HepG2_ZBTB3-human_ENCFF972RKU/seqs-centered
+Finished invoke:
+  name: center_seqs  status: 0  time: 0.162099
+Invoking:
+  fasta-get-markov -nostatus -nosummary -dna -m 2 HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa HepG2_ZBTB3-human_ENCFF972RKU/background
+Finished invoke:
+  name: bg  status: 0  time: 0.105532
+Invoking:
+  meme HepG2_ZBTB3-human_ENCFF972RKU/seqs-centered -oc HepG2_ZBTB3-human_ENCFF972RKU/meme_out -mod zoops -nmotifs 3 -minw 6 -maxw 15 -bfile HepG2_ZBTB3-human_ENCFF972RKU/background -dna -seed 0 -searchsize 10000 -time 2919 -revcomp -nostatus
+Finished invoke:
+  name: meme  status: 0  time: 22.925506
+Invoking:
+  streme --verbosity 1 --oc HepG2_ZBTB3-human_ENCFF972RKU/streme_out -dna --seed 0 --p HepG2_ZBTB3-human_ENCFF972RKU/seqs-centered --minw 6 --maxw 15 --time 6190 --order 2 --thresh 0.05 --align center --totallength 4000000 --parse-genomic-coord
+Finished invoke:
+  name: streme  status: 0  time: 626.331482
+Invoking:
+  centrimo -seqlen 710 -verbosity 1 -oc HepG2_ZBTB3-human_ENCFF972RKU/centrimo_out -bfile HepG2_ZBTB3-human_ENCFF972RKU/background -score 5.0 -ethresh 10.0 HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa HepG2_ZBTB3-human_ENCFF972RKU/meme_out/meme.xml HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme
+Finished invoke:
+  name: centrimo  status: 0  time: 73.177987
+Invoking:
+  tomtom -verbosity 1 -oc HepG2_ZBTB3-human_ENCFF972RKU/meme_tomtom_out -min-overlap 5 -dist pearson -evalue -thresh 1 -no-ssc HepG2_ZBTB3-human_ENCFF972RKU/meme_out/meme.xml /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme
+Finished invoke:
+  name: meme_tomtom  status: 0  time: 4.621594
+Invoking:
+  tomtom -verbosity 1 -oc HepG2_ZBTB3-human_ENCFF972RKU/streme_tomtom_out -min-overlap 5 -dist pearson -evalue -thresh 1 -no-ssc HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme
+Finished invoke:
+  name: streme_tomtom  status: 0  time: 39.990656
+Invoking:
+  tomtom -verbosity 1 -text -thresh 0.1 HepG2_ZBTB3-human_ENCFF972RKU/combined.meme HepG2_ZBTB3-human_ENCFF972RKU/combined.meme 1> HepG2_ZBTB3-human_ENCFF972RKU/motif_alignment.txt
+Finished invoke:
+  name: align  status: 0  time: 9.072337
+Invoking:
+  spamo -verbosity 1 -oc HepG2_ZBTB3-human_ENCFF972RKU/spamo_out_1 -bgfile HepG2_ZBTB3-human_ENCFF972RKU/background -keepprimary -primary 34-CCGGAAGC HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/meme_out/meme.xml HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml
+Finished invoke:
+  name: spamo1  status: 0  time: 4.066346
+Invoking:
+  spamo -verbosity 1 -oc HepG2_ZBTB3-human_ENCFF972RKU/spamo_out_2 -bgfile HepG2_ZBTB3-human_ENCFF972RKU/background -keepprimary -primary 1-RACAGAGYGAGACYC HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/meme_out/meme.xml HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml
+Finished invoke:
+  name: spamo2  status: 0  time: 1.752943
+Invoking:
+  spamo -verbosity 1 -oc HepG2_ZBTB3-human_ENCFF972RKU/spamo_out_3 -bgfile HepG2_ZBTB3-human_ENCFF972RKU/background -keepprimary -primary 2-AGGYTGCAGTGAGCY HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/meme_out/meme.xml HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml
+Finished invoke:
+  name: spamo3  status: 0  time: 1.416075
+Invoking:
+  spamo -verbosity 1 -oc HepG2_ZBTB3-human_ENCFF972RKU/spamo_out_4 -bgfile HepG2_ZBTB3-human_ENCFF972RKU/background -keepprimary -primary 3-ATCRCTTGARCCCRG HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/meme_out/meme.xml HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml
+Finished invoke:
+  name: spamo4  status: 0  time: 1.719999
+Invoking:
+  spamo -verbosity 1 -oc HepG2_ZBTB3-human_ENCFF972RKU/spamo_out_5 -bgfile HepG2_ZBTB3-human_ENCFF972RKU/background -keepprimary -primary 4-CCTGTARTCCCAGCW HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/meme_out/meme.xml HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml
+Finished invoke:
+  name: spamo5  status: 0  time: 1.59615
+Invoking:
+  spamo -verbosity 1 -oc HepG2_ZBTB3-human_ENCFF972RKU/spamo_out_6 -bgfile HepG2_ZBTB3-human_ENCFF972RKU/background -keepprimary -primary 5-CACTGCACTCCAGCC HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/meme_out/meme.xml HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml
+Finished invoke:
+  name: spamo6  status: 0  time: 1.495792
+Invoking:
+  spamo -verbosity 1 -oc HepG2_ZBTB3-human_ENCFF972RKU/spamo_out_7 -bgfile HepG2_ZBTB3-human_ENCFF972RKU/background -keepprimary -primary 6-YGTCTCWAMAAAAAA HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/meme_out/meme.xml HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml
+Finished invoke:
+  name: spamo7  status: 0  time: 1.885148
+Invoking:
+  spamo -verbosity 1 -oc HepG2_ZBTB3-human_ENCFF972RKU/spamo_out_8 -bgfile HepG2_ZBTB3-human_ENCFF972RKU/background -keepprimary -primary 7-CCTCAGCCTCCCRAR HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/meme_out/meme.xml HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml
+Finished invoke:
+  name: spamo8  status: 0  time: 1.911394
+Invoking:
+  spamo -verbosity 1 -oc HepG2_ZBTB3-human_ENCFF972RKU/spamo_out_9 -bgfile HepG2_ZBTB3-human_ENCFF972RKU/background -keepprimary -primary 17-CACGTGRYC HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/meme_out/meme.xml HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml
+Finished invoke:
+  name: spamo9  status: 0  time: 1.527332
+Invoking:
+  spamo -verbosity 1 -oc HepG2_ZBTB3-human_ENCFF972RKU/spamo_out_10 -bgfile HepG2_ZBTB3-human_ENCFF972RKU/background -keepprimary -primary 8-ATRTTTAC HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/meme_out/meme.xml HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml
+Finished invoke:
+  name: spamo10  status: 0  time: 3.739001
+Invoking:
+  spamo -verbosity 1 -oc HepG2_ZBTB3-human_ENCFF972RKU/spamo_out_11 -bgfile HepG2_ZBTB3-human_ENCFF972RKU/background -keepprimary -primary 12-CCAAGGTCAC HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/meme_out/meme.xml HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml
+Finished invoke:
+  name: spamo11  status: 0  time: 5.09411
+Invoking:
+  spamo -verbosity 1 -oc HepG2_ZBTB3-human_ENCFF972RKU/spamo_out_12 -bgfile HepG2_ZBTB3-human_ENCFF972RKU/background -keepprimary -primary 9-GCCCCGCCCCCN HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/meme_out/meme.xml HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml
+Finished invoke:
+  name: spamo12  status: 0  time: 4.494469
+Invoking:
+  spamo -verbosity 1 -oc HepG2_ZBTB3-human_ENCFF972RKU/spamo_out_13 -bgfile HepG2_ZBTB3-human_ENCFF972RKU/background -keepprimary -primary 31-RTTRYRYAAY HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/meme_out/meme.xml HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml
+Finished invoke:
+  name: spamo13  status: 0  time: 1.972925
+Invoking:
+  spamo -verbosity 1 -oc HepG2_ZBTB3-human_ENCFF972RKU/spamo_out_14 -bgfile HepG2_ZBTB3-human_ENCFF972RKU/background -keepprimary -primary 10-AGGCTGGTCTYGAA HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/meme_out/meme.xml HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml
+Finished invoke:
+  name: spamo14  status: 0  time: 1.101256
+Invoking:
+  spamo -verbosity 1 -oc HepG2_ZBTB3-human_ENCFF972RKU/spamo_out_15 -bgfile HepG2_ZBTB3-human_ENCFF972RKU/background -keepprimary -primary 30-GCGGCGGCGGCGGC HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/meme_out/meme.xml HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml
+Finished invoke:
+  name: spamo15  status: 0  time: 2.408042
+Invoking:
+  spamo -verbosity 1 -oc HepG2_ZBTB3-human_ENCFF972RKU/spamo_out_16 -bgfile HepG2_ZBTB3-human_ENCFF972RKU/background -keepprimary -primary 11-AAGATGGCGGCGVC HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/meme_out/meme.xml HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml
+Finished invoke:
+  name: spamo16  status: 0  time: 2.692003
+Invoking:
+  spamo -verbosity 1 -oc HepG2_ZBTB3-human_ENCFF972RKU/spamo_out_17 -bgfile HepG2_ZBTB3-human_ENCFF972RKU/background -keepprimary -primary 13-AAAGAAAAGAAA HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/meme_out/meme.xml HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml
+Finished invoke:
+  name: spamo17  status: 0  time: 5.053373
+Invoking:
+  spamo -verbosity 1 -oc HepG2_ZBTB3-human_ENCFF972RKU/spamo_out_18 -bgfile HepG2_ZBTB3-human_ENCFF972RKU/background -keepprimary -primary 14-AAATTAGCYRGGYGT HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/meme_out/meme.xml HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml
+Finished invoke:
+  name: spamo18  status: 0  time: 0.962575
+Invoking:
+  spamo -verbosity 1 -oc HepG2_ZBTB3-human_ENCFF972RKU/spamo_out_19 -bgfile HepG2_ZBTB3-human_ENCFF972RKU/background -keepprimary -primary 15-CGGTGGCTCAYG HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/meme_out/meme.xml HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml
+Finished invoke:
+  name: spamo19  status: 0  time: 1.493256
+Invoking:
+  spamo -verbosity 1 -oc HepG2_ZBTB3-human_ENCFF972RKU/spamo_out_20 -bgfile HepG2_ZBTB3-human_ENCFF972RKU/background -keepprimary -primary 18-GAGATTGCGC HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/meme_out/meme.xml HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml
+Finished invoke:
+  name: spamo20  status: 0  time: 1.193034
+Invoking:
+  fimo --verbosity 1 --oc HepG2_ZBTB3-human_ENCFF972RKU/fimo_out_1 --bgfile HepG2_ZBTB3-human_ENCFF972RKU/background --parse-genomic-coord --motif 34-CCGGAAGC HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa
+Finished invoke:
+  name: fimo1  status: 0  time: 2.749431
+Invoking:
+  fimo --verbosity 1 --oc HepG2_ZBTB3-human_ENCFF972RKU/fimo_out_2 --bgfile HepG2_ZBTB3-human_ENCFF972RKU/background --parse-genomic-coord --motif 1-RACAGAGYGAGACYC HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa
+Finished invoke:
+  name: fimo2  status: 0  time: 3.034001
+Invoking:
+  fimo --verbosity 1 --oc HepG2_ZBTB3-human_ENCFF972RKU/fimo_out_3 --bgfile HepG2_ZBTB3-human_ENCFF972RKU/background --parse-genomic-coord --motif 2-AGGYTGCAGTGAGCY HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa
+Finished invoke:
+  name: fimo3  status: 0  time: 2.919054
+Invoking:
+  fimo --verbosity 1 --oc HepG2_ZBTB3-human_ENCFF972RKU/fimo_out_4 --bgfile HepG2_ZBTB3-human_ENCFF972RKU/background --parse-genomic-coord --motif 3-ATCRCTTGARCCCRG HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa
+Finished invoke:
+  name: fimo4  status: 0  time: 2.919314
+Invoking:
+  fimo --verbosity 1 --oc HepG2_ZBTB3-human_ENCFF972RKU/fimo_out_5 --bgfile HepG2_ZBTB3-human_ENCFF972RKU/background --parse-genomic-coord --motif 4-CCTGTARTCCCAGCW HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa
+Finished invoke:
+  name: fimo5  status: 0  time: 2.936695
+Invoking:
+  fimo --verbosity 1 --oc HepG2_ZBTB3-human_ENCFF972RKU/fimo_out_6 --bgfile HepG2_ZBTB3-human_ENCFF972RKU/background --parse-genomic-coord --motif 5-CACTGCACTCCAGCC HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa
+Finished invoke:
+  name: fimo6  status: 0  time: 3.137912
+Invoking:
+  fimo --verbosity 1 --oc HepG2_ZBTB3-human_ENCFF972RKU/fimo_out_7 --bgfile HepG2_ZBTB3-human_ENCFF972RKU/background --parse-genomic-coord --motif 6-YGTCTCWAMAAAAAA HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa
+Finished invoke:
+  name: fimo7  status: 0  time: 3.055511
+Invoking:
+  fimo --verbosity 1 --oc HepG2_ZBTB3-human_ENCFF972RKU/fimo_out_8 --bgfile HepG2_ZBTB3-human_ENCFF972RKU/background --parse-genomic-coord --motif 7-CCTCAGCCTCCCRAR HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa
+Finished invoke:
+  name: fimo8  status: 0  time: 2.914736
+Invoking:
+  fimo --verbosity 1 --oc HepG2_ZBTB3-human_ENCFF972RKU/fimo_out_9 --bgfile HepG2_ZBTB3-human_ENCFF972RKU/background --parse-genomic-coord --motif 17-CACGTGRYC HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa
+Finished invoke:
+  name: fimo9  status: 0  time: 2.795867
+Invoking:
+  fimo --verbosity 1 --oc HepG2_ZBTB3-human_ENCFF972RKU/fimo_out_10 --bgfile HepG2_ZBTB3-human_ENCFF972RKU/background --parse-genomic-coord --motif 8-ATRTTTAC HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa
+Finished invoke:
+  name: fimo10  status: 0  time: 2.884985
+Invoking:
+  fimo --verbosity 1 --oc HepG2_ZBTB3-human_ENCFF972RKU/fimo_out_11 --bgfile HepG2_ZBTB3-human_ENCFF972RKU/background --parse-genomic-coord --motif 12-CCAAGGTCAC HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa
+Finished invoke:
+  name: fimo11  status: 0  time: 2.710844
+Invoking:
+  fimo --verbosity 1 --oc HepG2_ZBTB3-human_ENCFF972RKU/fimo_out_12 --bgfile HepG2_ZBTB3-human_ENCFF972RKU/background --parse-genomic-coord --motif 9-GCCCCGCCCCCN HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa
+Finished invoke:
+  name: fimo12  status: 0  time: 2.880647
+Invoking:
+  fimo --verbosity 1 --oc HepG2_ZBTB3-human_ENCFF972RKU/fimo_out_13 --bgfile HepG2_ZBTB3-human_ENCFF972RKU/background --parse-genomic-coord --motif 31-RTTRYRYAAY HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa
+Finished invoke:
+  name: fimo13  status: 0  time: 2.764598
+Invoking:
+  fimo --verbosity 1 --oc HepG2_ZBTB3-human_ENCFF972RKU/fimo_out_14 --bgfile HepG2_ZBTB3-human_ENCFF972RKU/background --parse-genomic-coord --motif 10-AGGCTGGTCTYGAA HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa
+Finished invoke:
+  name: fimo14  status: 0  time: 2.955876
+Invoking:
+  fimo --verbosity 1 --oc HepG2_ZBTB3-human_ENCFF972RKU/fimo_out_15 --bgfile HepG2_ZBTB3-human_ENCFF972RKU/background --parse-genomic-coord --motif 30-GCGGCGGCGGCGGC HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa
+Finished invoke:
+  name: fimo15  status: 0  time: 2.970269
+Invoking:
+  fimo --verbosity 1 --oc HepG2_ZBTB3-human_ENCFF972RKU/fimo_out_16 --bgfile HepG2_ZBTB3-human_ENCFF972RKU/background --parse-genomic-coord --motif 11-AAGATGGCGGCGVC HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa
+Finished invoke:
+  name: fimo16  status: 0  time: 2.948903
+Invoking:
+  fimo --verbosity 1 --oc HepG2_ZBTB3-human_ENCFF972RKU/fimo_out_17 --bgfile HepG2_ZBTB3-human_ENCFF972RKU/background --parse-genomic-coord --motif 13-AAAGAAAAGAAA HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa
+Finished invoke:
+  name: fimo17  status: 0  time: 3.227757
+Invoking:
+  fimo --verbosity 1 --oc HepG2_ZBTB3-human_ENCFF972RKU/fimo_out_18 --bgfile HepG2_ZBTB3-human_ENCFF972RKU/background --parse-genomic-coord --motif 14-AAATTAGCYRGGYGT HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa
+Finished invoke:
+  name: fimo18  status: 0  time: 2.972822
+Invoking:
+  fimo --verbosity 1 --oc HepG2_ZBTB3-human_ENCFF972RKU/fimo_out_19 --bgfile HepG2_ZBTB3-human_ENCFF972RKU/background --parse-genomic-coord --motif 15-CGGTGGCTCAYG HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa
+Finished invoke:
+  name: fimo19  status: 0  time: 2.946678
+Invoking:
+  fimo --verbosity 1 --oc HepG2_ZBTB3-human_ENCFF972RKU/fimo_out_20 --bgfile HepG2_ZBTB3-human_ENCFF972RKU/background --parse-genomic-coord --motif 18-GAGATTGCGC HepG2_ZBTB3-human_ENCFF972RKU/streme_out/streme.xml HepG2_ZBTB3-human_ENCFF972RKU/HepG2_ZBTB3-human_ENCFF972RKU.fa
+Finished invoke:
+  name: fimo20  status: 0  time: 2.929324
+Writing output
+Invoking:
+  meme-chip_html_to_tsv HepG2_ZBTB3-human_ENCFF972RKU/meme-chip.html HepG2_ZBTB3-human_ENCFF972RKU/summary.tsv "meme-chip -oc HepG2_ZBTB3-human_ENCFF972RKU -time 240 -ccut 200 -dna -order 2 -minw 6 -maxw 15 --parse-genomic-coord -db /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme -meme-mod zoops -meme-nmotifs 3 -meme-searchsize 10000 -streme-pvt 0.05 -streme-align center -streme-totallength 4000000 -centrimo-score 5.0 -centrimo-ethresh 10.0 HepG2_ZBTB3-human_ENCFF972RKU.fa" 5.5.3 "Sat Jun 10 16\:19\:38 2023 -0700"
+Finished invoke:
+  name: summary  status: 0  time: 0.323594
+Done
