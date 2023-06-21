@@ -101,15 +101,19 @@ chromatin_files <- paste(CHR_NAMES,"chromatin.bed",sep=".")
 # registerDoParallel(n_cores)  # use multicore
 # processed_results_summery <-
 #   foreach (chr_n = 1:length(CHR_NAMES ), .combine = rbind) %dopar% {
-    chr_n <- 21
+
+for(chr_n in 1:length(CHR_NAMES)){
+
+    #chr_n <- 21
     
-    file_name <- meth_files[chr_n]
-    print(file_name)
-    df <- readRDS(file.path(input_folder_WGBS_HISTONE, file_name))
+    print(meth_files[chr_n])
+    df <- readRDS(file.path(input_folder_WGBS_HISTONE, meth_files[chr_n]))
     #df$chromatin_state <- NA
     df$chromatin_state_K562 <- NA
     df$chromatin_state_HepG2 <- NA
 
+    print(chromatin_files[chr_n])
+    
     # get chrn specific locations
     df_chromatin <-
       read.table(
@@ -123,10 +127,6 @@ chromatin_files <- paste(CHR_NAMES,"chromatin.bed",sep=".")
           "chromatin_state_K562"
         )
       )
-    
-    
-    
- 
     
     # debug
     #df <- rbind(head(df,20000),tail(df,20000))
@@ -151,9 +151,9 @@ chromatin_files <- paste(CHR_NAMES,"chromatin.bed",sep=".")
         #  for(r in 200000:210000){
         ######################setTxtProgressBar(pb,i)
         #r <- 1
-        if(r%% 10000 == 0){
-          print(paste("CpG row number:",r,"chromatin row number" ,i,"percent = ",r/length(start)*100,sep=" "))
-        }
+        # if(r%% 10000 == 0){
+        #   print(paste("CpG row number:",r,"chromatin row number" ,i,"percent = ",r/length(start)*100,sep=" "))
+        # }
         ########################### K562 ##########################
         # check if need to go to next segment
         while (end[r] > state_end[i] & i <= length(state_end)) {
@@ -161,7 +161,7 @@ chromatin_files <- paste(CHR_NAMES,"chromatin.bed",sep=".")
         }
         
         # if there is annotation in segement
-        if(state_start[i] <= start[r]){
+        if(state_start[i] <= start[r] & i <= length(state_start)){
           #DO ANNOATTE
           chromatin_state_K562[r] <- state_K562[i]
           chromatin_state_HepG2[r] <- state_HepG2[i]
@@ -172,11 +172,10 @@ chromatin_files <- paste(CHR_NAMES,"chromatin.bed",sep=".")
       df$chromatin_state_K562 <- chromatin_state_K562
       df$chromatin_state_HepG2 <- chromatin_state_HepG2
 
+    ######################close(pb)
+    saveRDS(object = df,file = file.path(output_folder,sub(pattern = ".rds",replacement = ".chromatin.RDS",x =  meth_files[chr_n])))
     end_time <- Sys.time()
     print(end_time - start_time) 
-    
-    ######################close(pb)
-    saveRDS(object = df,file = file.path(output_folder,sub(pattern = ".rds",replacement = ".chromatin.RDS",x =  file_name)))
     
 }    
     # p_island <- ggplot2::ggplot(data = ADNP.ChiP_vs_WGBS_vs_chromatin ,mapping = ggplot2::aes(x = chromatin_state,fill = fRead_K562 < 0.25))+
