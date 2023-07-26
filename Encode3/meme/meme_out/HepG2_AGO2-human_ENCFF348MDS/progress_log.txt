@@ -1,0 +1,38 @@
+Invoking:
+  getsize meme/meme_out/HepG2_AGO2-human_ENCFF348MDS/HepG2_AGO2-human_ENCFF348MDS.fa 1> $metrics
+Finished invoke:
+  name: count_seqs  status: 0  time: 6.715828
+Invoking:
+  fasta-most -min 50 < meme/meme_out/HepG2_AGO2-human_ENCFF348MDS/HepG2_AGO2-human_ENCFF348MDS.fa 1> $metrics
+Finished invoke:
+  name: most_seqs  status: 0  time: 2.241447
+Invoking:
+  fasta-center -dna -len 200 --parse-genomic-coord < meme/meme_out/HepG2_AGO2-human_ENCFF348MDS/HepG2_AGO2-human_ENCFF348MDS.fa 1> meme/meme_out/HepG2_AGO2-human_ENCFF348MDS/seqs-centered
+Finished invoke:
+  name: center_seqs  status: 0  time: 3.420005
+Invoking:
+  fasta-get-markov -nostatus -nosummary -dna -m 2 meme/meme_out/HepG2_AGO2-human_ENCFF348MDS/HepG2_AGO2-human_ENCFF348MDS.fa meme/meme_out/HepG2_AGO2-human_ENCFF348MDS/background
+Finished invoke:
+  name: bg  status: 0  time: 2.420075
+Invoking:
+  meme meme/meme_out/HepG2_AGO2-human_ENCFF348MDS/seqs-centered -oc meme/meme_out/HepG2_AGO2-human_ENCFF348MDS/meme_out -mod zoops -nmotifs 3 -minw 6 -maxw 15 -bfile meme/meme_out/HepG2_AGO2-human_ENCFF348MDS/background -dna -seed 0 -searchsize 10000 -time 2916 -revcomp -nostatus
+Finished invoke:
+  name: meme  status: 0  time: 288.044295
+Invoking:
+  streme --verbosity 1 --oc meme/meme_out/HepG2_AGO2-human_ENCFF348MDS/streme_out -dna --seed 0 --p meme/meme_out/HepG2_AGO2-human_ENCFF348MDS/seqs-centered --minw 6 --maxw 15 --time 6069 --order 2 --thresh 0.05 --align center --totallength 4000000 --parse-genomic-coord
+Finished invoke:
+  name: streme  status: 15  time: 6129.368393  (ran out of time!)
+Invoking:
+  centrimo -seqlen 664 -verbosity 1 -oc meme/meme_out/HepG2_AGO2-human_ENCFF348MDS/centrimo_out -bfile meme/meme_out/HepG2_AGO2-human_ENCFF348MDS/background -score 5.0 -ethresh 10.0 meme/meme_out/HepG2_AGO2-human_ENCFF348MDS/HepG2_AGO2-human_ENCFF348MDS.fa meme/meme_out/HepG2_AGO2-human_ENCFF348MDS/meme_out/meme.xml /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme
+Finished invoke:
+  name: centrimo  status: 15  time: 2449.19612  (ran out of time!)
+Invoking:
+  tomtom -verbosity 1 -oc meme/meme_out/HepG2_AGO2-human_ENCFF348MDS/meme_tomtom_out -min-overlap 5 -dist pearson -evalue -thresh 1 -no-ssc meme/meme_out/HepG2_AGO2-human_ENCFF348MDS/meme_out/meme.xml /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme
+Finished invoke:
+  name: meme_tomtom  status: 0  time: 218.680604
+Writing output
+Invoking:
+  meme-chip_html_to_tsv meme/meme_out/HepG2_AGO2-human_ENCFF348MDS/meme-chip.html meme/meme_out/HepG2_AGO2-human_ENCFF348MDS/summary.tsv "meme-chip -oc meme/meme_out/HepG2_AGO2-human_ENCFF348MDS -time 240 -ccut 200 -dna -order 2 -minw 6 -maxw 15 --parse-genomic-coord -db /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme -meme-mod zoops -meme-nmotifs 3 -meme-searchsize 10000 -streme-pvt 0.05 -streme-align center -streme-totallength 4000000 -centrimo-score 5.0 -centrimo-ethresh 10.0 meme/fasta/HepG2_AGO2-human_ENCFF348MDS.fa" 5.5.3 "Sat Jun 10 16\:19\:38 2023 -0700"
+Finished invoke:
+  name: summary  status: 0  time: 4.800005
+Done

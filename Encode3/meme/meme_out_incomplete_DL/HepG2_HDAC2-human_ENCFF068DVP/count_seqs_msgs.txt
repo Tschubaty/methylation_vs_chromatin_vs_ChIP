@@ -1,0 +1,2 @@
+Duplicate sequence: chrX:1448100-1448813.
+Duplicate sequence: chr17:80629535-80629883.

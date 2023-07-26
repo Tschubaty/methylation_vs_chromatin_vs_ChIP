@@ -1,0 +1,4 @@
+Duplicate sequence: chr3:71208435-71209087.
+Duplicate sequence: chr5:82387250-82387575.
+Duplicate sequence: chr10:31940942-31941294.
+Duplicate sequence: chr9:125296942-125297306.

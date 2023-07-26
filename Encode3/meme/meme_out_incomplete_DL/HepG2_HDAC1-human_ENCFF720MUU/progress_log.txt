@@ -1,0 +1,174 @@
+Invoking:
+  getsize meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa 1> $metrics
+Finished invoke:
+  name: count_seqs  status: 0  time: 0.42608
+Invoking:
+  fasta-most -min 50 < meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa 1> $metrics
+Finished invoke:
+  name: most_seqs  status: 0  time: 0.171675
+Invoking:
+  fasta-center -dna -len 200 --parse-genomic-coord < meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa 1> meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/seqs-centered
+Finished invoke:
+  name: center_seqs  status: 0  time: 0.269882
+Invoking:
+  fasta-get-markov -nostatus -nosummary -dna -m 2 meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background
+Finished invoke:
+  name: bg  status: 0  time: 0.184704
+Invoking:
+  meme meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/seqs-centered -oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/meme_out -mod zoops -nmotifs 3 -minw 6 -maxw 15 -bfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background -dna -seed 0 -searchsize 10000 -time 2919 -revcomp -nostatus
+Finished invoke:
+  name: meme  status: 0  time: 32.692504
+Invoking:
+  streme --verbosity 1 --oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out -dna --seed 0 --p meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/seqs-centered --minw 6 --maxw 15 --time 6186 --order 2 --thresh 0.05 --align center --totallength 4000000 --parse-genomic-coord
+Finished invoke:
+  name: streme  status: 0  time: 1424.587837
+Invoking:
+  centrimo -seqlen 816 -verbosity 1 -oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/centrimo_out -bfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background -score 5.0 -ethresh 10.0 meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/meme_out/meme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme
+Finished invoke:
+  name: centrimo  status: 0  time: 117.789302
+Invoking:
+  tomtom -verbosity 1 -oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/meme_tomtom_out -min-overlap 5 -dist pearson -evalue -thresh 1 -no-ssc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/meme_out/meme.xml /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme
+Finished invoke:
+  name: meme_tomtom  status: 0  time: 5.633754
+Invoking:
+  tomtom -verbosity 1 -oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_tomtom_out -min-overlap 5 -dist pearson -evalue -thresh 1 -no-ssc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme
+Finished invoke:
+  name: streme_tomtom  status: 0  time: 54.547028
+Invoking:
+  tomtom -verbosity 1 -text -thresh 0.1 meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/combined.meme meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/combined.meme 1> meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/motif_alignment.txt
+Finished invoke:
+  name: align  status: 0  time: 2.178515
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/spamo_out_1 -bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background -keepprimary -primary 1-KCCCCRCCCCCH meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/meme_out/meme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml
+Finished invoke:
+  name: spamo1  status: 0  time: 9.841535
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/spamo_out_2 -bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background -keepprimary -primary 2-GCCTCAGTTTCC meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/meme_out/meme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml
+Finished invoke:
+  name: spamo2  status: 0  time: 6.235883
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/spamo_out_3 -bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background -keepprimary -primary 3-CCAGCCTGGGCRACA meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/meme_out/meme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml
+Finished invoke:
+  name: spamo3  status: 0  time: 2.504113
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/spamo_out_4 -bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background -keepprimary -primary 4-CCTGTAATCCCAGCW meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/meme_out/meme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml
+Finished invoke:
+  name: spamo4  status: 0  time: 2.170084
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/spamo_out_5 -bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background -keepprimary -primary 6-GAGRATCGCTTGARC meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/meme_out/meme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml
+Finished invoke:
+  name: spamo5  status: 0  time: 2.275216
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/spamo_out_6 -bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background -keepprimary -primary 7-GCAGTGAGCCGAGAT meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/meme_out/meme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml
+Finished invoke:
+  name: spamo6  status: 0  time: 1.715122
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/spamo_out_7 -bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background -keepprimary -primary AAABAAAMAHAHAHW meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/meme_out/meme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/meme_out/meme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml
+Finished invoke:
+  name: spamo7  status: 0  time: 7.926748
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/spamo_out_8 -bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background -keepprimary -primary 8-GAGACRGRGTCTCRC meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/meme_out/meme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml
+Finished invoke:
+  name: spamo8  status: 0  time: 2.323134
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/spamo_out_9 -bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background -keepprimary -primary 9-GGCGCGGTGGCTCAC meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/meme_out/meme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml
+Finished invoke:
+  name: spamo9  status: 0  time: 1.972232
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/spamo_out_10 -bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background -keepprimary -primary 10-GGAGTTCGAGA meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/meme_out/meme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml
+Finished invoke:
+  name: spamo10  status: 0  time: 2.876051
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/spamo_out_11 -bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background -keepprimary -primary 11-GTAAAYAW meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/meme_out/meme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml
+Finished invoke:
+  name: spamo11  status: 0  time: 7.668976
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/spamo_out_12 -bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background -keepprimary -primary 13-CCCATTTTACAGATG meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/meme_out/meme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml
+Finished invoke:
+  name: spamo12  status: 0  time: 2.244933
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/spamo_out_13 -bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background -keepprimary -primary 15-AGYAGCTG meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/meme_out/meme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml
+Finished invoke:
+  name: spamo13  status: 0  time: 9.894825
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/spamo_out_14 -bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background -keepprimary -primary 21-CCAAGGCC meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/meme_out/meme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml
+Finished invoke:
+  name: spamo14  status: 0  time: 9.79731
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/spamo_out_15 -bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background -keepprimary -primary 16-AAAGCAAACA meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/meme_out/meme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml
+Finished invoke:
+  name: spamo15  status: 0  time: 7.727495
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/spamo_out_16 -bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background -keepprimary -primary 17-AAGATGGCGGYG meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/meme_out/meme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml
+Finished invoke:
+  name: spamo16  status: 0  time: 6.465185
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/fimo_out_1 --bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background --parse-genomic-coord --motif 1-KCCCCRCCCCCH meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa
+Finished invoke:
+  name: fimo1  status: 0  time: 5.122256
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/fimo_out_2 --bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background --parse-genomic-coord --motif 2-GCCTCAGTTTCC meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa
+Finished invoke:
+  name: fimo2  status: 0  time: 4.998521
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/fimo_out_3 --bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background --parse-genomic-coord --motif 3-CCAGCCTGGGCRACA meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa
+Finished invoke:
+  name: fimo3  status: 0  time: 5.191641
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/fimo_out_4 --bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background --parse-genomic-coord --motif 4-CCTGTAATCCCAGCW meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa
+Finished invoke:
+  name: fimo4  status: 0  time: 5.163268
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/fimo_out_5 --bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background --parse-genomic-coord --motif 6-GAGRATCGCTTGARC meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa
+Finished invoke:
+  name: fimo5  status: 0  time: 5.102014
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/fimo_out_6 --bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background --parse-genomic-coord --motif 7-GCAGTGAGCCGAGAT meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa
+Finished invoke:
+  name: fimo6  status: 0  time: 5.138337
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/fimo_out_7 --bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background --parse-genomic-coord --motif AAABAAAMAHAHAHW meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/meme_out/meme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa
+Finished invoke:
+  name: fimo7  status: 0  time: 4.957572
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/fimo_out_8 --bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background --parse-genomic-coord --motif 8-GAGACRGRGTCTCRC meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa
+Finished invoke:
+  name: fimo8  status: 0  time: 5.081085
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/fimo_out_9 --bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background --parse-genomic-coord --motif 9-GGCGCGGTGGCTCAC meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa
+Finished invoke:
+  name: fimo9  status: 0  time: 5.052505
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/fimo_out_10 --bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background --parse-genomic-coord --motif 10-GGAGTTCGAGA meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa
+Finished invoke:
+  name: fimo10  status: 0  time: 4.976439
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/fimo_out_11 --bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background --parse-genomic-coord --motif 11-GTAAAYAW meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa
+Finished invoke:
+  name: fimo11  status: 0  time: 4.817418
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/fimo_out_12 --bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background --parse-genomic-coord --motif 13-CCCATTTTACAGATG meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa
+Finished invoke:
+  name: fimo12  status: 0  time: 5.062245
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/fimo_out_13 --bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background --parse-genomic-coord --motif 15-AGYAGCTG meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa
+Finished invoke:
+  name: fimo13  status: 0  time: 4.616072
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/fimo_out_14 --bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background --parse-genomic-coord --motif 21-CCAAGGCC meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa
+Finished invoke:
+  name: fimo14  status: 0  time: 4.750933
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/fimo_out_15 --bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background --parse-genomic-coord --motif 16-AAAGCAAACA meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa
+Finished invoke:
+  name: fimo15  status: 0  time: 4.843574
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/fimo_out_16 --bgfile meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/background --parse-genomic-coord --motif 17-AAGATGGCGGYG meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/streme_out/streme.xml meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/HepG2_HDAC1-human_ENCFF720MUU.fa
+Finished invoke:
+  name: fimo16  status: 0  time: 4.785371
+Writing output
+Invoking:
+  meme-chip_html_to_tsv meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/meme-chip.html meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU/summary.tsv "meme-chip -oc meme_out_incomplete_DL/HepG2_HDAC1-human_ENCFF720MUU -time 240 -ccut 200 -dna -order 2 -minw 6 -maxw 15 --parse-genomic-coord -db /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme -meme-mod zoops -meme-nmotifs 3 -meme-searchsize 10000 -streme-pvt 0.05 -streme-align center -streme-totallength 4000000 -centrimo-score 5.0 -centrimo-ethresh 10.0 fasta/HepG2_HDAC1-human_ENCFF720MUU.fa" 5.5.3 "Sat Jun 10 16\:19\:38 2023 -0700"
+Finished invoke:
+  name: summary  status: 0  time: 0.238189
+Done

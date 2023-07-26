@@ -1,0 +1,246 @@
+Invoking:
+  getsize meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa 1> $metrics
+Finished invoke:
+  name: count_seqs  status: 0  time: 0.495145
+Invoking:
+  fasta-most -min 50 < meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa 1> $metrics
+Finished invoke:
+  name: most_seqs  status: 0  time: 0.213542
+Invoking:
+  fasta-center -dna -len 200 --parse-genomic-coord < meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa 1> meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/seqs-centered
+Finished invoke:
+  name: center_seqs  status: 0  time: 0.403544
+Invoking:
+  fasta-get-markov -nostatus -nosummary -dna -m 2 meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background
+Finished invoke:
+  name: bg  status: 0  time: 0.230345
+Invoking:
+  meme meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/seqs-centered -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out -mod zoops -nmotifs 3 -minw 6 -maxw 15 -bfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background -dna -seed 0 -searchsize 10000 -time 2919 -revcomp -nostatus
+Finished invoke:
+  name: meme  status: 0  time: 57.609338
+Invoking:
+  streme --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out -dna --seed 0 --p meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/seqs-centered --minw 6 --maxw 15 --time 6175 --order 2 --thresh 0.05 --align center --totallength 4000000 --parse-genomic-coord
+Finished invoke:
+  name: streme  status: 0  time: 3321.152735
+Invoking:
+  centrimo -seqlen 450 -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/centrimo_out -bfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background -score 5.0 -ethresh 10.0 meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme
+Finished invoke:
+  name: centrimo  status: 0  time: 134.970469
+Invoking:
+  tomtom -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_tomtom_out -min-overlap 5 -dist pearson -evalue -thresh 1 -no-ssc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme
+Finished invoke:
+  name: meme_tomtom  status: 0  time: 3.498861
+Invoking:
+  tomtom -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_tomtom_out -min-overlap 5 -dist pearson -evalue -thresh 1 -no-ssc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme
+Finished invoke:
+  name: streme_tomtom  status: 0  time: 63.748028
+Invoking:
+  tomtom -verbosity 1 -text -thresh 0.1 meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/combined.meme meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/combined.meme 1> meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/motif_alignment.txt
+Finished invoke:
+  name: align  status: 0  time: 158.679537
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/spamo_out_1 -bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background -keepprimary -primary 1-RRCMGGAAGTGV meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml
+Finished invoke:
+  name: spamo1  status: 0  time: 32.819419
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/spamo_out_2 -bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background -keepprimary -primary 9-CCASYAGRKGGCR meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml
+Finished invoke:
+  name: spamo2  status: 0  time: 4.838064
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/spamo_out_3 -bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background -keepprimary -primary 5-CAAAGKYCA meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml
+Finished invoke:
+  name: spamo3  status: 0  time: 14.718265
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/spamo_out_4 -bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background -keepprimary -primary 33-ACATCCGGG meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml
+Finished invoke:
+  name: spamo4  status: 0  time: 2.862802
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/spamo_out_5 -bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background -keepprimary -primary 11-GTAAAYA meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml
+Finished invoke:
+  name: spamo5  status: 0  time: 13.600971
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/spamo_out_6 -bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background -keepprimary -primary 15-GASGTCAC meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml
+Finished invoke:
+  name: spamo6  status: 0  time: 10.480809
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/spamo_out_7 -bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background -keepprimary -primary 3-GCCCCGCCCCCN meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml
+Finished invoke:
+  name: spamo7  status: 0  time: 13.884499
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/spamo_out_8 -bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background -keepprimary -primary 12-RTTRYRYAAY meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml
+Finished invoke:
+  name: spamo8  status: 0  time: 5.638016
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/spamo_out_9 -bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background -keepprimary -primary 4-RACTACAWYTCCCAG meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml
+Finished invoke:
+  name: spamo9  status: 0  time: 2.647808
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/spamo_out_10 -bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background -keepprimary -primary 6-RTGACTCAB meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml
+Finished invoke:
+  name: spamo10  status: 0  time: 7.24951
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/spamo_out_11 -bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background -keepprimary -primary 39-CACGTGG meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml
+Finished invoke:
+  name: spamo11  status: 0  time: 4.627531
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/spamo_out_12 -bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background -keepprimary -primary 7-CARCCAATCR meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml
+Finished invoke:
+  name: spamo12  status: 0  time: 4.119775
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/spamo_out_13 -bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background -keepprimary -primary 54-AAAGGAAACAG meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml
+Finished invoke:
+  name: spamo13  status: 0  time: 7.32532
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/spamo_out_14 -bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background -keepprimary -primary 8-YAAAAAAAAAAAAA meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml
+Finished invoke:
+  name: spamo14  status: 0  time: 2.818976
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/spamo_out_15 -bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background -keepprimary -primary 62-CCACCTCCC meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml
+Finished invoke:
+  name: spamo15  status: 0  time: 17.946816
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/spamo_out_16 -bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background -keepprimary -primary 10-CCTGTAATCCCAGC meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml
+Finished invoke:
+  name: spamo16  status: 0  time: 2.119223
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/spamo_out_17 -bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background -keepprimary -primary 38-CCTCTGCCC meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml
+Finished invoke:
+  name: spamo17  status: 0  time: 17.41351
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/spamo_out_18 -bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background -keepprimary -primary 16-AAGATGGCGGC meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml
+Finished invoke:
+  name: spamo18  status: 0  time: 1.964321
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/spamo_out_19 -bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background -keepprimary -primary 17-CCAGCCTGGGCRACA meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml
+Finished invoke:
+  name: spamo19  status: 0  time: 1.945366
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/spamo_out_20 -bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background -keepprimary -primary CCHKSCYCCTB meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml
+Finished invoke:
+  name: spamo20  status: 0  time: 40.493368
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/spamo_out_21 -bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background -keepprimary -primary 19-ARACCCYGTCTCWA meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml
+Finished invoke:
+  name: spamo21  status: 0  time: 2.513679
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/spamo_out_22 -bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background -keepprimary -primary 20-AGGAGRATCRCTTGA meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml
+Finished invoke:
+  name: spamo22  status: 0  time: 1.715547
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/spamo_out_23 -bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background -keepprimary -primary 21-AGATCAAAG meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml
+Finished invoke:
+  name: spamo23  status: 0  time: 5.779848
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/spamo_out_24 -bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background -keepprimary -primary 40-AGCACCACGGACAGC meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml
+Finished invoke:
+  name: spamo24  status: 0  time: 1.112132
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/spamo_out_25 -bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background -keepprimary -primary 22-AGGYTGCAGTGAGCY meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml
+Finished invoke:
+  name: spamo25  status: 0  time: 1.911471
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/fimo_out_1 --bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background --parse-genomic-coord --motif 1-RRCMGGAAGTGV meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa
+Finished invoke:
+  name: fimo1  status: 0  time: 8.268237
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/fimo_out_2 --bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background --parse-genomic-coord --motif 9-CCASYAGRKGGCR meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa
+Finished invoke:
+  name: fimo2  status: 0  time: 8.120762
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/fimo_out_3 --bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background --parse-genomic-coord --motif 5-CAAAGKYCA meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa
+Finished invoke:
+  name: fimo3  status: 0  time: 8.340392
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/fimo_out_4 --bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background --parse-genomic-coord --motif 33-ACATCCGGG meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa
+Finished invoke:
+  name: fimo4  status: 0  time: 8.402782
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/fimo_out_5 --bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background --parse-genomic-coord --motif 11-GTAAAYA meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa
+Finished invoke:
+  name: fimo5  status: 0  time: 8.355454
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/fimo_out_6 --bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background --parse-genomic-coord --motif 15-GASGTCAC meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa
+Finished invoke:
+  name: fimo6  status: 0  time: 8.191656
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/fimo_out_7 --bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background --parse-genomic-coord --motif 3-GCCCCGCCCCCN meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa
+Finished invoke:
+  name: fimo7  status: 0  time: 8.610215
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/fimo_out_8 --bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background --parse-genomic-coord --motif 12-RTTRYRYAAY meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa
+Finished invoke:
+  name: fimo8  status: 0  time: 8.055135
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/fimo_out_9 --bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background --parse-genomic-coord --motif 4-RACTACAWYTCCCAG meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa
+Finished invoke:
+  name: fimo9  status: 0  time: 8.237522
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/fimo_out_10 --bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background --parse-genomic-coord --motif 6-RTGACTCAB meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa
+Finished invoke:
+  name: fimo10  status: 0  time: 8.092211
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/fimo_out_11 --bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background --parse-genomic-coord --motif 39-CACGTGG meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa
+Finished invoke:
+  name: fimo11  status: 0  time: 8.068389
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/fimo_out_12 --bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background --parse-genomic-coord --motif 7-CARCCAATCR meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa
+Finished invoke:
+  name: fimo12  status: 0  time: 8.303509
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/fimo_out_13 --bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background --parse-genomic-coord --motif 54-AAAGGAAACAG meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa
+Finished invoke:
+  name: fimo13  status: 0  time: 8.134142
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/fimo_out_14 --bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background --parse-genomic-coord --motif 8-YAAAAAAAAAAAAA meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa
+Finished invoke:
+  name: fimo14  status: 0  time: 8.949643
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/fimo_out_15 --bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background --parse-genomic-coord --motif 62-CCACCTCCC meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa
+Finished invoke:
+  name: fimo15  status: 0  time: 8.251756
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/fimo_out_16 --bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background --parse-genomic-coord --motif 10-CCTGTAATCCCAGC meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa
+Finished invoke:
+  name: fimo16  status: 0  time: 8.350331
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/fimo_out_17 --bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background --parse-genomic-coord --motif 38-CCTCTGCCC meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa
+Finished invoke:
+  name: fimo17  status: 0  time: 7.755247
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/fimo_out_18 --bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background --parse-genomic-coord --motif 16-AAGATGGCGGC meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa
+Finished invoke:
+  name: fimo18  status: 0  time: 8.164413
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/fimo_out_19 --bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background --parse-genomic-coord --motif 17-CCAGCCTGGGCRACA meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa
+Finished invoke:
+  name: fimo19  status: 0  time: 8.281207
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/fimo_out_20 --bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background --parse-genomic-coord --motif CCHKSCYCCTB meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa
+Finished invoke:
+  name: fimo20  status: 0  time: 8.275366
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/fimo_out_21 --bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background --parse-genomic-coord --motif 19-ARACCCYGTCTCWA meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa
+Finished invoke:
+  name: fimo21  status: 0  time: 8.241774
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/fimo_out_22 --bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background --parse-genomic-coord --motif 20-AGGAGRATCRCTTGA meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa
+Finished invoke:
+  name: fimo22  status: 0  time: 8.248999
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/fimo_out_23 --bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background --parse-genomic-coord --motif 21-AGATCAAAG meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa
+Finished invoke:
+  name: fimo23  status: 0  time: 8.213158
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/fimo_out_24 --bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background --parse-genomic-coord --motif 40-AGCACCACGGACAGC meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa
+Finished invoke:
+  name: fimo24  status: 0  time: 8.786619
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/fimo_out_25 --bgfile meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/background --parse-genomic-coord --motif 22-AGGYTGCAGTGAGCY meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/HepG2_GABPA-human_ENCFF776HYP.fa
+Finished invoke:
+  name: fimo25  status: 0  time: 8.633604
+Writing output
+Invoking:
+  meme-chip_html_to_tsv meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/meme-chip.html meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP/summary.tsv "meme-chip -oc meme_out_incomplete_DL/HepG2_GABPA-human_ENCFF776HYP -time 240 -ccut 200 -dna -order 2 -minw 6 -maxw 15 --parse-genomic-coord -db /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme -meme-mod zoops -meme-nmotifs 3 -meme-searchsize 10000 -streme-pvt 0.05 -streme-align center -streme-totallength 4000000 -centrimo-score 5.0 -centrimo-ethresh 10.0 fasta/HepG2_GABPA-human_ENCFF776HYP.fa" 5.5.3 "Sat Jun 10 16\:19\:38 2023 -0700"
+Finished invoke:
+  name: summary  status: 0  time: 1.132243
+Done

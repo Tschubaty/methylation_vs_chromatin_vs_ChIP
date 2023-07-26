@@ -1,0 +1,6 @@
+Skipping sequence chr11:66421658-66421932 as its length (274) does not match the expected length (340).
+Skipping sequence chr14:35535292-35535467 as its length (175) does not match the expected length (340).
+Skipping sequence chr3:48661767-48661944 as its length (177) does not match the expected length (340).
+Skipping sequence chr5:176837741-176837888 as its length (147) does not match the expected length (340).
+Skipping sequence chr19:49987229-49987328 as its length (99) does not match the expected length (340).
+Skipping sequence chr4:1712624-1712718 as its length (94) does not match the expected length (340).

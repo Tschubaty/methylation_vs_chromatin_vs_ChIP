@@ -1,0 +1,2 @@
+Duplicate sequence: chr2:47309893-47310341.
+Duplicate sequence: chr2:101566684-101567323.

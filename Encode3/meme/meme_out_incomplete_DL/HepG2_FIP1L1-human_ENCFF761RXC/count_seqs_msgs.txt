@@ -1,0 +1,3 @@
+Duplicate sequence: chr14:23636337-23636923.
+Duplicate sequence: chr6:26156315-26157191.
+Duplicate sequence: chr6:26055722-26056513.

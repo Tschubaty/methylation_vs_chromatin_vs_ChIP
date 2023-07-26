@@ -1,0 +1,42 @@
+Invoking:
+  getsize meme_out_incomplete_DL/HepG2_MATR3-human_ENCFF559BWX/HepG2_MATR3-human_ENCFF559BWX.fa 1> $metrics
+Finished invoke:
+  name: count_seqs  status: 0  time: 0.02147
+Invoking:
+  fasta-most -min 50 < meme_out_incomplete_DL/HepG2_MATR3-human_ENCFF559BWX/HepG2_MATR3-human_ENCFF559BWX.fa 1> $metrics
+Finished invoke:
+  name: most_seqs  status: 0  time: 0.042487
+Invoking:
+  fasta-center -dna -len 200 --parse-genomic-coord < meme_out_incomplete_DL/HepG2_MATR3-human_ENCFF559BWX/HepG2_MATR3-human_ENCFF559BWX.fa 1> meme_out_incomplete_DL/HepG2_MATR3-human_ENCFF559BWX/seqs-centered
+Finished invoke:
+  name: center_seqs  status: 0  time: 0.052908
+Invoking:
+  fasta-get-markov -nostatus -nosummary -dna -m 2 meme_out_incomplete_DL/HepG2_MATR3-human_ENCFF559BWX/HepG2_MATR3-human_ENCFF559BWX.fa meme_out_incomplete_DL/HepG2_MATR3-human_ENCFF559BWX/background
+Finished invoke:
+  name: bg  status: 0  time: 0.011922
+Invoking:
+  meme meme_out_incomplete_DL/HepG2_MATR3-human_ENCFF559BWX/seqs-centered -oc meme_out_incomplete_DL/HepG2_MATR3-human_ENCFF559BWX/meme_out -mod zoops -nmotifs 3 -minw 6 -maxw 15 -bfile meme_out_incomplete_DL/HepG2_MATR3-human_ENCFF559BWX/background -dna -seed 0 -searchsize 10000 -time 2919 -revcomp -nostatus
+Finished invoke:
+  name: meme  status: 0  time: 12.884211
+Invoking:
+  streme --verbosity 1 --oc meme_out_incomplete_DL/HepG2_MATR3-human_ENCFF559BWX/streme_out -dna --seed 0 --p meme_out_incomplete_DL/HepG2_MATR3-human_ENCFF559BWX/seqs-centered --minw 6 --maxw 15 --time 6195 --order 2 --thresh 0.05 --align center --totallength 4000000 --parse-genomic-coord
+Finished invoke:
+  name: streme  status: 0  time: 7.483076
+Invoking:
+  centrimo -seqlen 264 -verbosity 1 -oc meme_out_incomplete_DL/HepG2_MATR3-human_ENCFF559BWX/centrimo_out -bfile meme_out_incomplete_DL/HepG2_MATR3-human_ENCFF559BWX/background -score 5.0 -ethresh 10.0 meme_out_incomplete_DL/HepG2_MATR3-human_ENCFF559BWX/HepG2_MATR3-human_ENCFF559BWX.fa meme_out_incomplete_DL/HepG2_MATR3-human_ENCFF559BWX/meme_out/meme.xml meme_out_incomplete_DL/HepG2_MATR3-human_ENCFF559BWX/streme_out/streme.xml /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme
+Finished invoke:
+  name: centrimo  status: 0  time: 3.846191
+Invoking:
+  tomtom -verbosity 1 -oc meme_out_incomplete_DL/HepG2_MATR3-human_ENCFF559BWX/meme_tomtom_out -min-overlap 5 -dist pearson -evalue -thresh 1 -no-ssc meme_out_incomplete_DL/HepG2_MATR3-human_ENCFF559BWX/meme_out/meme.xml /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme
+Finished invoke:
+  name: meme_tomtom  status: 0  time: 3.489424
+Invoking:
+  tomtom -verbosity 1 -oc meme_out_incomplete_DL/HepG2_MATR3-human_ENCFF559BWX/streme_tomtom_out -min-overlap 5 -dist pearson -evalue -thresh 1 -no-ssc meme_out_incomplete_DL/HepG2_MATR3-human_ENCFF559BWX/streme_out/streme.xml /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme
+Finished invoke:
+  name: streme_tomtom  status: 0  time: 6.206802
+Writing output
+Invoking:
+  meme-chip_html_to_tsv meme_out_incomplete_DL/HepG2_MATR3-human_ENCFF559BWX/meme-chip.html meme_out_incomplete_DL/HepG2_MATR3-human_ENCFF559BWX/summary.tsv "meme-chip -oc meme_out_incomplete_DL/HepG2_MATR3-human_ENCFF559BWX -time 240 -ccut 200 -dna -order 2 -minw 6 -maxw 15 --parse-genomic-coord -db /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme -meme-mod zoops -meme-nmotifs 3 -meme-searchsize 10000 -streme-pvt 0.05 -streme-align center -streme-totallength 4000000 -centrimo-score 5.0 -centrimo-ethresh 10.0 fasta/HepG2_MATR3-human_ENCFF559BWX.fa" 5.5.3 "Sat Jun 10 16\:19\:38 2023 -0700"
+Finished invoke:
+  name: summary  status: 0  time: 0.183307
+Done

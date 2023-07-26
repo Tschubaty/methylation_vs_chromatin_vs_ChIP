@@ -1,0 +1,6 @@
+Duplicate sequence: chr14:23555948-23556381.
+Duplicate sequence: chr20:2470508-2470940.
+Duplicate sequence: chr22:41446676-41447007.
+Duplicate sequence: chr20:18137711-18138079.
+Duplicate sequence: chr14:24242532-24242967.
+Duplicate sequence: chr2:232550524-232550947.

@@ -1,0 +1,308 @@
+# Warning: Skipping primary sequence '>chr2:234969552-234969521' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr8:127742368-127742143' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr1:204363221-204363190' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr17:81187793-81187937' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr17:75823657-75823176' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr19:614281-614250' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr11:1285070-1285236' of length 166 because
+#          it causes total database length to be exceeded (3600032 > 3600000).
+# Warning: Skipping primary sequence '>chr19:11233123-11233092' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr5:139323332-139323301' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr19:16517423-16517332' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr1:1615551-1615608' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr19:15247793-15247762' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr16:69316781-69316709' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr3:172268819-172268788' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr7:100567268-100567139' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr8:81841880-81841849' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr8:17909459-17909428' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr13:23375083-23375257' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr19:15233413-15233391' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr16:19114875-19114014' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr19:35042227-35042308' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr1:9727263-9727398' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr16:16152136-16152105' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr17:3658013-3657898' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr1:45584269-45584238' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr17:45393561-45393530' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr17:38415182-38415151' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr7:44771423-44771392' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr17:43021989-43021901' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr16:87831733-87831463' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr20:46356470-46356359' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr19:7914377-7914098' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr20:62367926-62367632' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr1:15734981-15735036' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr16:12658672-12658641' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr4:52659834-52659992' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr1:6593041-6592709' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr3:185490868-185490837' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr16:87850188-87850198' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr1:16625809-16625801' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr1:183635546-183635515' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr15:84784228-84784197' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr17:45097024-45096993' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr13:110712320-110712502' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr22:19175133-19173995' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr17:39927007-39927033' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr10:5096675-5096644' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr2:11324694-11324663' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr22:37757685-37757745' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr19:48807885-48807964' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr22:23649167-23649277' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr9:136721473-136719347' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr12:121004177-121004072' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chrX:153778795-153778950' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr11:116790480-116790385' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr20:1331117-1331086' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr11:3000159-3000128' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr22:21688946-21688915' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr17:1752757-1752733' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr1:162561837-162561862' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr10:72061567-72061536' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr19:5121140-5121325' of length 185 because
+#          it causes total database length to be exceeded (3600051 > 3600000).
+# Warning: Skipping primary sequence '>chr16:4891975-4892093' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr17:1485400-1485482' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr4:2069426-2069526' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr16:8905873-8905842' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr19:5114179-5114169' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr11:494818-494657' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr7:100887160-100887249' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr1:12541354-12541323' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr5:6365396-6365365' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr12:32679536-32679546' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr6:11185256-11185378' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr2:64524595-64524539' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr16:89733880-89733927' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr1:21631877-21631846' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr3:128052521-128052589' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr3:182980195-182980164' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr15:55993427-55993396' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr20:44422161-44422130' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr17:82080851-82080148' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr19:44898048-44898240' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr3:48188064-48188033' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr1:3465875-3465738' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr2:27380810-27380505' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr2:241726903-241726872' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr12:49033071-49033034' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr19:2272739-2272587' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr19:58386542-58386421' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr20:25308687-25308825' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr9:108864964-108865161' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr1:231627019-231626949' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr22:43952051-43952096' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr6:31660624-31660578' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr8:22036884-22036853' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr4:2928528-2928664' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr3:149812704-149812815' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr21:45074164-45074285' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr1:2240757-2240726' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr17:17784564-17784533' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr20:35000868-35000402' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr13:112791291-112791446' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr5:181246777-181246612' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr9:137427908-137428015' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr15:58867206-58867175' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr1:66930348-66930280' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr11:62671854-62671776' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr1:27528114-27528209' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr6:63528500-63528469' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr20:46357216-46357218' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr3:30643586-30643722' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr7:100889190-100889017' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr1:21936858-21936827' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr5:163437713-163437748' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr19:35030284-35030341' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr22:38751394-38751363' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr19:19182130-19182099' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr11:72774687-72774656' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr16:10767028-10766997' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr7:127858157-127858126' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr8:144078748-144078758' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr9:137066295-137066303' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr17:82004791-82003476' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr7:5305153-5305277' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr1:160262269-160262379' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr17:48831278-48831451' of length 173 because
+#          it causes total database length to be exceeded (3600039 > 3600000).
+# Warning: Skipping primary sequence '>chr22:36316529-36316498' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr2:168246728-168246585' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr19:46739405-46739374' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr2:11584795-11584764' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chrX:154013206-154013153' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr17:38875084-38875053' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr1:38873146-38872940' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr2:232887277-232887246' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr3:126082654-126082623' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr9:108878053-108878022' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr17:75621484-75621453' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr17:82342881-82343068' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr6:167976813-167976781' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr12:110468918-110468846' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr19:3095032-3095001' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr16:83961696-83961862' of length 166 because
+#          it causes total database length to be exceeded (3600032 > 3600000).
+# Warning: Skipping primary sequence '>chr2:21041704-21041315' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr7:151080947-151080368' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr16:2962121-2962090' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr7:111728327-111728296' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr12:49273924-49274016' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr9:136805000-136805057' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr16:27314054-27314099' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr20:44310927-44311030' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr16:30756315-30756514' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr12:118060661-118060852' of length 191 because
+#          it causes total database length to be exceeded (3600057 > 3600000).
+# Warning: Skipping primary sequence '>chr4:140373695-140373822' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).
+# Warning: Skipping primary sequence '>chr2:215382600-215382749' of length 200 because
+#          it causes total database length to be exceeded (3600066 > 3600000).

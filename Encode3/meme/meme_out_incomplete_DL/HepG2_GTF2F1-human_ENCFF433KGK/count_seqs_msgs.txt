@@ -1,0 +1,3 @@
+Duplicate sequence: chrM:15663-16569.
+Duplicate sequence: chr14:23034807-23035295.
+Duplicate sequence: chr8:33513256-33513693.

@@ -1,0 +1,62 @@
+Invoking:
+  getsize meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/HepG2_GPN1-human_ENCFF926PNY.fa 1> $metrics
+Finished invoke:
+  name: count_seqs  status: 0  time: 0.034077
+Invoking:
+  fasta-most -min 50 < meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/HepG2_GPN1-human_ENCFF926PNY.fa 1> $metrics
+Finished invoke:
+  name: most_seqs  status: 0  time: 0.048347
+Invoking:
+  fasta-center -dna -len 200 --parse-genomic-coord < meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/HepG2_GPN1-human_ENCFF926PNY.fa 1> meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/seqs-centered
+Finished invoke:
+  name: center_seqs  status: 0  time: 0.06995
+Invoking:
+  fasta-get-markov -nostatus -nosummary -dna -m 2 meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/HepG2_GPN1-human_ENCFF926PNY.fa meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/background
+Finished invoke:
+  name: bg  status: 0  time: 0.019971
+Invoking:
+  meme meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/seqs-centered -oc meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/meme_out -mod zoops -nmotifs 3 -minw 6 -maxw 15 -bfile meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/background -dna -seed 0 -searchsize 10000 -time 2919 -revcomp -nostatus
+Finished invoke:
+  name: meme  status: 0  time: 14.075018
+Invoking:
+  streme --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/streme_out -dna --seed 0 --p meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/seqs-centered --minw 6 --maxw 15 --time 6194 --order 2 --thresh 0.05 --align center --totallength 4000000 --parse-genomic-coord
+Finished invoke:
+  name: streme  status: 0  time: 51.261714
+Invoking:
+  centrimo -seqlen 296 -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/centrimo_out -bfile meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/background -score 5.0 -ethresh 10.0 meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/HepG2_GPN1-human_ENCFF926PNY.fa meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/streme_out/streme.xml /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme
+Finished invoke:
+  name: centrimo  status: 0  time: 9.359584
+Invoking:
+  tomtom -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/meme_tomtom_out -min-overlap 5 -dist pearson -evalue -thresh 1 -no-ssc meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/meme_out/meme.xml /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme
+Finished invoke:
+  name: meme_tomtom  status: 0  time: 6.009408
+Invoking:
+  tomtom -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/streme_tomtom_out -min-overlap 5 -dist pearson -evalue -thresh 1 -no-ssc meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/streme_out/streme.xml /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme
+Finished invoke:
+  name: streme_tomtom  status: 0  time: 15.422426
+Invoking:
+  tomtom -verbosity 1 -text -thresh 0.1 meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/combined.meme meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/combined.meme 1> meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/motif_alignment.txt
+Finished invoke:
+  name: align  status: 0  time: 0.292501
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/spamo_out_1 -bgfile meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/background -keepprimary -primary 1-AGCACCAYGGACAG meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/HepG2_GPN1-human_ENCFF926PNY.fa meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/streme_out/streme.xml
+Finished invoke:
+  name: spamo1  status: 0  time: 0.101375
+Invoking:
+  spamo -verbosity 1 -oc meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/spamo_out_2 -bgfile meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/background -keepprimary -primary 2-GGCGGCGGCGGCRGC meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/HepG2_GPN1-human_ENCFF926PNY.fa meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/meme_out/meme.xml meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/streme_out/streme.xml
+Finished invoke:
+  name: spamo2  status: 0  time: 0.08423
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/fimo_out_1 --bgfile meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/background --parse-genomic-coord --motif 1-AGCACCAYGGACAG meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/HepG2_GPN1-human_ENCFF926PNY.fa
+Finished invoke:
+  name: fimo1  status: 0  time: 0.587453
+Invoking:
+  fimo --verbosity 1 --oc meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/fimo_out_2 --bgfile meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/background --parse-genomic-coord --motif 2-GGCGGCGGCGGCRGC meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/streme_out/streme.xml meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/HepG2_GPN1-human_ENCFF926PNY.fa
+Finished invoke:
+  name: fimo2  status: 0  time: 0.56103
+Writing output
+Invoking:
+  meme-chip_html_to_tsv meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/meme-chip.html meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY/summary.tsv "meme-chip -oc meme_out_incomplete_DL/HepG2_GPN1-human_ENCFF926PNY -time 240 -ccut 200 -dna -order 2 -minw 6 -maxw 15 --parse-genomic-coord -db /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme -meme-mod zoops -meme-nmotifs 3 -meme-searchsize 10000 -streme-pvt 0.05 -streme-align center -streme-totallength 4000000 -centrimo-score 5.0 -centrimo-ethresh 10.0 fasta/HepG2_GPN1-human_ENCFF926PNY.fa" 5.5.3 "Sat Jun 10 16\:19\:38 2023 -0700"
+Finished invoke:
+  name: summary  status: 0  time: 0.226977
+Done

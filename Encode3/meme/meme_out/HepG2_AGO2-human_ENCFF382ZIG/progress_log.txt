@@ -1,0 +1,22 @@
+Invoking:
+  getsize meme/meme_out/HepG2_AGO2-human_ENCFF382ZIG/HepG2_AGO2-human_ENCFF382ZIG.fa 1> $metrics
+Finished invoke:
+  name: count_seqs  status: 0  time: 163.829879
+Invoking:
+  fasta-most -min 50 < meme/meme_out/HepG2_AGO2-human_ENCFF382ZIG/HepG2_AGO2-human_ENCFF382ZIG.fa 1> $metrics
+Finished invoke:
+  name: most_seqs  status: 0  time: 49.850162
+Invoking:
+  fasta-center -dna -len 200 --parse-genomic-coord < meme/meme_out/HepG2_AGO2-human_ENCFF382ZIG/HepG2_AGO2-human_ENCFF382ZIG.fa 1> meme/meme_out/HepG2_AGO2-human_ENCFF382ZIG/seqs-centered
+Finished invoke:
+  name: center_seqs  status: 0  time: 70.569948
+Invoking:
+  fasta-get-markov -nostatus -nosummary -dna -m 2 meme/meme_out/HepG2_AGO2-human_ENCFF382ZIG/HepG2_AGO2-human_ENCFF382ZIG.fa meme/meme_out/HepG2_AGO2-human_ENCFF382ZIG/background
+Finished invoke:
+  name: bg  status: 0  time: 70.725143
+Invoking:
+  meme meme/meme_out/HepG2_AGO2-human_ENCFF382ZIG/seqs-centered -oc meme/meme_out/HepG2_AGO2-human_ENCFF382ZIG/meme_out -mod zoops -nmotifs 3 -minw 6 -maxw 15 -bfile meme/meme_out/HepG2_AGO2-human_ENCFF382ZIG/background -dna -seed 0 -searchsize 10000 -time 2845 -revcomp -nostatus
+Finished invoke:
+  name: meme  status: 15  time: 156075.115079  (ran out of time!)
+Invoking:
+  streme --verbosity 1 --oc meme/meme_out/HepG2_AGO2-human_ENCFF382ZIG/streme_out -dna --seed 0 --p meme/meme_out/HepG2_AGO2-human_ENCFF382ZIG/seqs-centered --minw 6 --maxw 15 --time 1 --order 2 --thresh 0.05 --align center --totallength 4000000 --parse-genomic-coord

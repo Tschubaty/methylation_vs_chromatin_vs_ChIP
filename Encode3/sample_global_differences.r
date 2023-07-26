@@ -125,7 +125,7 @@ group.colors <-
 
 
 ############################ merge all data ###################################
-
+if(FALSE){
 for (chr in CHR_NAMES) {
   #deug chr <- CHR_NAMES[1]
   print(chr)
@@ -144,7 +144,9 @@ for (chr in CHR_NAMES) {
 }
 
 saveRDS(object = df,file = file.path("WGBS","all.WGBS.histones.chromatin.islands.RDS", sep = "."))
+
 ######################################################################################
+df <- readRDS(file = file.path("WGBS","all.WGBS.histones.chromatin.islands.RDS", sep = "."))
 meta <- data.frame()
 #colnames(meta) <- c("chromatin_state","sample","property","value")
 
@@ -188,7 +190,9 @@ for(target in unique(meta$property)){
 
 #save file  
 saveRDS(object = meta,file = "meta.WGBS.histones.chromatin.islands.txt")
+}
 
+meta <- readRDS(file = "meta.WGBS.histones.chromatin.islands.txt")
 
 plot_list <- list()
 for (s in sample_names) {
@@ -198,12 +202,20 @@ for (s in sample_names) {
   ) +
     geom_tile() +
     ggtitle(s) +
-    scale_fill_gradient(low = "white", high = "blue") +
+    scale_fill_gradientn(colours = c("white", "gray","blue" ),
+                         values = scales::rescale(c(0, 0.25, 0.5, 0.75, 1)),
+                         limits=c(0, 1), 
+                         breaks=seq(0,1,by=0.25))+
+    #scale_fill_gradient(low = "white", high = "blue") +
     theme(axis.text.x = element_text(
       angle = 90,
       vjust = 0.5,
       hjust = 1
-    ))
+    ))+
+   scale_y_continuous("chromatin_state", labels = as.character(meta$chromatin_state), breaks = meta$chromatin_state)+
+    theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                       panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 }
 
 final_plot <-

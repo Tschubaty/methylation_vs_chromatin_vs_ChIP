@@ -1,0 +1,38 @@
+Invoking:
+  getsize meme_out_incomplete_DL/HepG2_MBD1-human_ENCFF930VNZ/HepG2_MBD1-human_ENCFF930VNZ.fa 1> $metrics
+Finished invoke:
+  name: count_seqs  status: 0  time: 0.219318
+Invoking:
+  fasta-most -min 50 < meme_out_incomplete_DL/HepG2_MBD1-human_ENCFF930VNZ/HepG2_MBD1-human_ENCFF930VNZ.fa 1> $metrics
+Finished invoke:
+  name: most_seqs  status: 0  time: 0.12151
+Invoking:
+  fasta-center -dna -len 200 --parse-genomic-coord < meme_out_incomplete_DL/HepG2_MBD1-human_ENCFF930VNZ/HepG2_MBD1-human_ENCFF930VNZ.fa 1> meme_out_incomplete_DL/HepG2_MBD1-human_ENCFF930VNZ/seqs-centered
+Finished invoke:
+  name: center_seqs  status: 0  time: 0.208448
+Invoking:
+  fasta-get-markov -nostatus -nosummary -dna -m 2 meme_out_incomplete_DL/HepG2_MBD1-human_ENCFF930VNZ/HepG2_MBD1-human_ENCFF930VNZ.fa meme_out_incomplete_DL/HepG2_MBD1-human_ENCFF930VNZ/background
+Finished invoke:
+  name: bg  status: 0  time: 0.113186
+Invoking:
+  meme meme_out_incomplete_DL/HepG2_MBD1-human_ENCFF930VNZ/seqs-centered -oc meme_out_incomplete_DL/HepG2_MBD1-human_ENCFF930VNZ/meme_out -mod zoops -nmotifs 3 -minw 6 -maxw 15 -bfile meme_out_incomplete_DL/HepG2_MBD1-human_ENCFF930VNZ/background -dna -seed 0 -searchsize 10000 -time 2919 -revcomp -nostatus
+Finished invoke:
+  name: meme  status: 0  time: 31.259594
+Invoking:
+  streme --verbosity 1 --oc meme_out_incomplete_DL/HepG2_MBD1-human_ENCFF930VNZ/streme_out -dna --seed 0 --p meme_out_incomplete_DL/HepG2_MBD1-human_ENCFF930VNZ/seqs-centered --minw 6 --maxw 15 --time 6186 --order 2 --thresh 0.05 --align center --totallength 4000000 --parse-genomic-coord
+Finished invoke:
+  name: streme  status: 0  time: 1175.508081
+Invoking:
+  centrimo -seqlen 460 -verbosity 1 -oc meme_out_incomplete_DL/HepG2_MBD1-human_ENCFF930VNZ/centrimo_out -bfile meme_out_incomplete_DL/HepG2_MBD1-human_ENCFF930VNZ/background -score 5.0 -ethresh 10.0 meme_out_incomplete_DL/HepG2_MBD1-human_ENCFF930VNZ/HepG2_MBD1-human_ENCFF930VNZ.fa meme_out_incomplete_DL/HepG2_MBD1-human_ENCFF930VNZ/meme_out/meme.xml meme_out_incomplete_DL/HepG2_MBD1-human_ENCFF930VNZ/streme_out/streme.xml /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme
+Finished invoke:
+  name: centrimo  status: 0  time: 77.338237
+Invoking:
+  tomtom -verbosity 1 -oc meme_out_incomplete_DL/HepG2_MBD1-human_ENCFF930VNZ/meme_tomtom_out -min-overlap 5 -dist pearson -evalue -thresh 1 -no-ssc meme_out_incomplete_DL/HepG2_MBD1-human_ENCFF930VNZ/meme_out/meme.xml /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme
+Finished invoke:
+  name: meme_tomtom  status: 0  time: 4.174677
+Invoking:
+  tomtom -verbosity 1 -oc meme_out_incomplete_DL/HepG2_MBD1-human_ENCFF930VNZ/streme_tomtom_out -min-overlap 5 -dist pearson -evalue -thresh 1 -no-ssc meme_out_incomplete_DL/HepG2_MBD1-human_ENCFF930VNZ/streme_out/streme.xml /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme
+Finished invoke:
+  name: streme_tomtom  status: 0  time: 48.753948
+Invoking:
+  tomtom -verbosity 1 -text -thresh 0.1 meme_out_incomplete_DL/HepG2_MBD1-human_ENCFF930VNZ/combined.meme meme_out_incomplete_DL/HepG2_MBD1-human_ENCFF930VNZ/combined.meme 1> meme_out_incomplete_DL/HepG2_MBD1-human_ENCFF930VNZ/motif_alignment.txt

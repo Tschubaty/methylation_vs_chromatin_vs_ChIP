@@ -1,0 +1,3 @@
+Warning: Eliminated 158 sequences that had the same ID as another sequence.
+Sequences must have unique IDs.
+Warning: Eliminated 5475 sequences that were too short to be scanned with the current margin (150) and primary motif length (8). Sequences must be at least 308 long.

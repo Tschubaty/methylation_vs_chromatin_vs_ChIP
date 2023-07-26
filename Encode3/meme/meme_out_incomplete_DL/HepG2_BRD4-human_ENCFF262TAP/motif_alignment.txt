@@ -1,0 +1,13 @@
+Query_ID	Target_ID	Optimal_offset	p-value	E-value	q-value	Overlap	Query_consensus	Target_consensus	Orientation
+1	1	0	2.73977e-26	2.19181e-25	4.38362e-25	12	CGGGTTCGAATC	CGGGTTCGAATC	+
+2	2	0	1.56705e-34	1.25364e-33	2.50727e-33	15	CGCCGCCGCCGCCGC	CGCCGCCGCCGCCGC	+
+3	3	0	1.67811e-26	1.34248e-25	2.68497e-25	12	CAAGATGGCGGC	CAAGATGGCGGC	+
+4	4	0	5.48466e-34	4.38773e-33	8.77546e-33	15	AAAAAAAAAAAAAAA	AAAAAAAAAAAAAAA	+
+5	5	0	7.26654e-22	5.81323e-21	1.16265e-20	10	CCCCACCCCC	CCCCACCCCC	+
+6	6	0	3.32496e-29	2.65997e-28	5.31993e-28	13	ACCACTGAGCTAC	ACCACTGAGCTAC	+
+7	7	0	3.22811e-32	2.58249e-31	5.16498e-31	14	CTGTAATCCCAGCA	CTGTAATCCCAGCA	+
+8	8	0	4.79459e-26	3.83567e-25	7.67134e-25	12	AGACCAGCCTGG	AGACCAGCCTGG	+
+
+# Tomtom (Motif Comparison Tool): Version 5.5.3 compiled on Jun 17 2023 at 01:08:46
+# The format of this file is described at http://localhost:8080/meme_5.5.3/doc/tomtom-output-format.html.
+# tomtom -verbosity 1 -text -thresh 0.1 meme_out_incomplete_DL/HepG2_BRD4-human_ENCFF262TAP/combined.meme meme_out_incomplete_DL/HepG2_BRD4-human_ENCFF262TAP/combined.meme

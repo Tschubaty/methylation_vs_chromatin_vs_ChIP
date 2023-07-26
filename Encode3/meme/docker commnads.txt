@@ -14,3 +14,6 @@ meme-chip -oc . -time 240 -ccut 200 -dna -order 2 -minw 6 -maxw 15 --parse-genom
 
 
 meme-chip -oc "HepG2_ZBTB3-human_ENCFF972RKU" -time 240 -ccut 200 -dna -order 2 -minw 6 -maxw 15 --parse-genomic-coord -db /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme -meme-mod zoops -meme-nmotifs 3 -meme-searchsize 10000 -streme-pvt 0.05 -streme-align center -streme-totallength 4000000 -centrimo-score 5.0 -centrimo-ethresh 10.0 HepG2_ZBTB3-human_ENCFF972RKU.fa
+
+
+meme-chip -oc "HepG2_ZBTB3-human_ENCFF972RKU" -time 240 -ccut 200 -dna -order 2 -minw 6 -maxw 15 --parse-genomic-coord -db /opt/meme/share/meme-5.5.3/db/motif_databases/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme -meme-mod zoops -meme-nmotifs 3 -meme-searchsize 10000 -streme-pvt 0.05 -streme-align center -streme-totallength 4000000 -centrimo-score 5.0 -centrimo-ethresh 10.0 HepG2_ZBTB3-human_ENCFF972RKU.fa

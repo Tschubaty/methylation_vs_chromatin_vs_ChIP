@@ -1,0 +1,2 @@
+Duplicate sequence: chr19:3185186-3185582.
+Duplicate sequence: chr3:186570160-186570512.

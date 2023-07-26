@@ -1,0 +1,1 @@
+Duplicate sequence: chr11:65422667-65423456.

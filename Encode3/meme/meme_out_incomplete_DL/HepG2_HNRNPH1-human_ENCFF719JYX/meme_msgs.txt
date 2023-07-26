@@ -1,0 +1,17 @@
+Duplicate sequence name. Skipping 'chrM:12007-10969'.
+Duplicate sequence name. Skipping 'chrM:15483-14798'.
+Duplicate sequence name. Skipping 'chrM:455-201'.
+Duplicate sequence name. Skipping 'chrM:2869-2224'.
+Duplicate sequence name. Skipping 'chrM:15483-14798'.
+Duplicate sequence name. Skipping 'chr6:26157219-26157350'.
+Duplicate sequence name. Skipping 'chrM:2869-2224'.
+Duplicate sequence name. Skipping 'chrM:12007-10969'.
+Duplicate sequence name. Skipping 'chr1:8027028-8027072'.
+Duplicate sequence name. Skipping 'chrM:455-201'.
+Duplicate sequence name. Skipping 'chr20:31607464-31607542'.
+Duplicate sequence name. Skipping 'chrM:12007-10969'.
+Duplicate sequence name. Skipping 'chrM:12007-10969'.
+Duplicate sequence name. Skipping 'chrM:7862-7867'.
+Duplicate sequence name. Skipping 'chr22:38506393-38506482'.
+Duplicate sequence name. Skipping 'chrM:10157-9852'.
+Duplicate sequence name. Skipping 'chr11:65423063-65422862'.

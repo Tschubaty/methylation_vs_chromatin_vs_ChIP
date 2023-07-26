@@ -1,0 +1,16 @@
+Duplicate sequence: chr16:30922320-30923553.
+Duplicate sequence: chr19:42242506-42243397.
+Duplicate sequence: chr20:18288067-18288670.
+Duplicate sequence: chr19:54115233-54115869.
+Duplicate sequence: chr19:35717401-35717944.
+Duplicate sequence: chr5:172006579-172007049.
+Duplicate sequence: chr2:85418335-85418833.
+Duplicate sequence: chr1:11980060-11980521.
+Duplicate sequence: chr19:36772743-36773242.
+Duplicate sequence: chr22:29766886-29767456.
+Duplicate sequence: chr16:67841842-67842400.
+Duplicate sequence: chr22:19479353-19479791.
+Duplicate sequence: chr14:23555822-23556379.
+Duplicate sequence: chr18:79679210-79679902.
+Duplicate sequence: chr19:56314759-56315231.
+Duplicate sequence: chr10:62804380-62804830.

@@ -1,0 +1,6 @@
+Duplicate sequence name. Skipping 'chr20:347969-348052'.
+Duplicate sequence name. Skipping 'chrX:115940968-115941014'.
+Duplicate sequence name. Skipping 'chr16:22297258-22297283'.
+Duplicate sequence name. Skipping 'chr2:218396083-218396199'.
+Duplicate sequence name. Skipping 'chr16:30814276-30814381'.
+Duplicate sequence name. Skipping 'chrX:52934817-52934861'.

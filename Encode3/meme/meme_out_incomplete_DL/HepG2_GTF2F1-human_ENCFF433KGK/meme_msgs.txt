@@ -1,0 +1,3 @@
+Duplicate sequence name. Skipping 'chrM:16016-15864'.
+Duplicate sequence name. Skipping 'chr14:23034951-23035008'.
+Duplicate sequence name. Skipping 'chr8:33513374-33513457'.

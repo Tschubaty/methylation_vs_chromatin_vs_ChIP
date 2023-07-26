@@ -1,0 +1,7 @@
+Starting fasta-most: fasta-most -min 50 < meme/meme_out/HepG2_AGO2-human_ENCFF382ZIG/HepG2_AGO2-human_ENCFF382ZIG.fa 1> $metrics
+fasta-most ran successfully in 49.850162 seconds
+Starting fasta-center: fasta-center -dna -len 200 --parse-genomic-coord < meme/meme_out/HepG2_AGO2-human_ENCFF382ZIG/HepG2_AGO2-human_ENCFF382ZIG.fa 1> meme/meme_out/HepG2_AGO2-human_ENCFF382ZIG/seqs-centered
+fasta-center ran successfully in 70.569948 seconds
+Starting fasta-get-markov: fasta-get-markov -nostatus -nosummary -dna -m 2 meme/meme_out/HepG2_AGO2-human_ENCFF382ZIG/HepG2_AGO2-human_ENCFF382ZIG.fa meme/meme_out/HepG2_AGO2-human_ENCFF382ZIG/background
+fasta-get-markov ran successfully in 70.725143 seconds
+Starting meme: meme meme/meme_out/HepG2_AGO2-human_ENCFF382ZIG/seqs-centered -oc meme/meme_out/HepG2_AGO2-human_ENCFF382ZIG/meme_out -mod zoops -nmotifs 3 -minw 6 -maxw 15 -bfile meme/meme_out/HepG2_AGO2-human_ENCFF382ZIG/background -dna -seed 0 -searchsize 10000 -time 2845 -revcomp -nostatus

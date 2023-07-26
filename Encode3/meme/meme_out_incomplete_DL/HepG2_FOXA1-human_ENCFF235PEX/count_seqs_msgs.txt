@@ -1,0 +1,8 @@
+Duplicate sequence: chr15:92804021-92804502.
+Duplicate sequence: chr2:101566656-101567308.
+Duplicate sequence: chr3:27360493-27360959.
+Duplicate sequence: chr12:12546415-12546799.
+Duplicate sequence: chr14:65226969-65227391.
+Duplicate sequence: chr20:33009424-33009912.
+Duplicate sequence: chr2:74764698-74765220.
+Duplicate sequence: chr18:58013530-58013983.

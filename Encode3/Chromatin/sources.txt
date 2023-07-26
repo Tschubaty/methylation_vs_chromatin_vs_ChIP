@@ -4,3 +4,5 @@ https://egg2.wustl.edu/roadmap/web_portal/chr_state_learning.html#rep
 https://egg2.wustl.edu/roadmap/data/byFileType/chromhmmSegmentations/ChmmModels/core_K27ac/jointModel/final/
 E123 = K562
 E118 = HepG2
+E114 = A549
+E116 = GM12878

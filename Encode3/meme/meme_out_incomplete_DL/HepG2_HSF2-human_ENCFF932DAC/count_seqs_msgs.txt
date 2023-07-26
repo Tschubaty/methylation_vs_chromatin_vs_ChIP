@@ -1,0 +1,1 @@
+Duplicate sequence: chr17:16380687-16381133.

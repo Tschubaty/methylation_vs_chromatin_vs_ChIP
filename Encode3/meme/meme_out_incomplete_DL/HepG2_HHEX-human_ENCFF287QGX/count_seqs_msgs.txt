@@ -1,0 +1,1 @@
+Duplicate sequence: chr19:40921091-40921590.

@@ -1,0 +1,14 @@
+Duplicate sequence name. Skipping 'chr5:138465030-138464888'.
+Duplicate sequence name. Skipping 'chr2:68467454-68467447'.
+Duplicate sequence name. Skipping 'chr19:45467653-45467627'.
+Duplicate sequence name. Skipping 'chr16:85291632-85291769'.
+Duplicate sequence name. Skipping 'chr19:33392483-33392578'.
+Duplicate sequence name. Skipping 'chr12:52051104-52051053'.
+Duplicate sequence name. Skipping 'chr11:65570134-65570154'.
+Duplicate sequence name. Skipping 'chr10:102394283-102394157'.
+Duplicate sequence name. Skipping 'chr11:65418719-65418820'.
+Duplicate sequence name. Skipping 'chr14:94599169-94599257'.
+Duplicate sequence name. Skipping 'chr14:75278561-75278572'.
+Duplicate sequence name. Skipping 'chr16:88487979-88488073'.
+Duplicate sequence name. Skipping 'chr5:57173549-57173573'.
+Duplicate sequence name. Skipping 'chr14:34873982-34874073'.

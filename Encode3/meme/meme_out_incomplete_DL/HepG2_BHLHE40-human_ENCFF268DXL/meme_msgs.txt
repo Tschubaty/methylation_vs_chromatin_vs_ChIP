@@ -1,0 +1,7 @@
+Duplicate sequence name. Skipping 'chr6:109382533-109382547'.
+Duplicate sequence name. Skipping 'chr17:8156489-8156519'.
+Duplicate sequence name. Skipping 'chr17:7686361-7686425'.
+Duplicate sequence name. Skipping 'chr1:154936880-154936866'.
+Duplicate sequence name. Skipping 'chr20:18137835-18137902'.
+Duplicate sequence name. Skipping 'chr11:57667521-57667642'.
+Duplicate sequence name. Skipping 'chr5:134371098-134371105'.
