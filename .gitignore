@@ -11,4 +11,4 @@
 !*.r
 
 # and don't ignore files ending with ".txt"
-!*.txt
+#!*.txt
