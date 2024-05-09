@@ -48,6 +48,9 @@ head(metadata)
 # Create a list of unique Biosamples
 biosamples <- unique(metadata$Biosample.term.name)
 
+
+##########################################################################
+
 # Create folders for each Biosample
 for (biosample in biosamples) {
   dir.create(biosample, showWarnings = FALSE)
@@ -121,63 +124,6 @@ for(folder in biosamples) {
 
 # merge by chr and sample  ################################################################
 library(dplyr)
-
-# Initialize an empty data frame to store the aggregated data
-aggregated_data <- data.frame(chr = character(), start = integer(), end = integer(), 
-                              name = integer(), score = integer(), strand = character(),
-                              nRead_HepG2 = integer(), nRead_K562 = integer(), 
-                              nRead_A549 = integer(), nRead_GM12878 = integer(),
-                              fRead_HepG2 = numeric(), fRead_K562 = numeric(),
-                              fRead_A549 = numeric(), fRead_GM12878 = numeric(),
-                              m_read = integer(), stringsAsFactors = FALSE)
-
-# Loop through each biosample folder
-for (folder in biosamples) {
-  print(folder)
-  # Initialize counters for each biosample
-  nRead_biosample <- 0
-  fRead_biosample <- 0
-  
-  # Initialize an empty data frame for the current biosample
-  biosample_data <- data.frame()
-  
-  # Loop through each file in the biosample folder
-  for (file in list.files(path = folder, pattern = ".rds")) {
-    print(file)
-    # Read the data from the file
-    data <- readRDS(file.path(folder, file))
-    
-    # Add nRead for the current file to the biosample total
-    nRead_biosample <- nRead_biosample + sum(data$n_read)
-    
-    # Add fRead for the current file to the biosample total (weighted sum)
-    fRead_biosample <- fRead_biosample + sum(data$n_read * data$f_read) / sum(data$n_read)
-    
-    # Merge data with biosample_data using left join
-    biosample_data <- left_join(biosample_data, data, by = c("chr", "start", "end", "strand"))
-  }
-  
-  # Calculate fRead for the biosample (percentage of methylated reads)
-  fRead_biosample <- fRead_biosample / nRead_biosample
-  
-  # Add biosample data to aggregated_data
-  aggregated_data <- bind_rows(aggregated_data, biosample_data)
-  
-  # Add total nRead and fRead for the biosample to aggregated_data
-  aggregated_data[nrow(aggregated_data), paste0("nRead_", basename(folder))] <- nRead_biosample
-  aggregated_data[nrow(aggregated_data), paste0("fRead_", basename(folder))] <- fRead_biosample
-}
-
-# Remove duplicated rows
-aggregated_data <- distinct(aggregated_data)
-
-# View the aggregated data
-head(aggregated_data)
-
-
-
-
-##############################################################################################
 # rm(bed)
 # gc()
 
@@ -208,83 +154,75 @@ CHR_NAMES <-
     "chr22"
   )
 
-# Loop through each chromosome
-for (chr in unique(data$chr)) {
-  # Subset data for the current chromosome
-  data_chr <- data[data$chr == chr, ]
-  
-  # Ensure consistent column names between chr_merged_data and data_chr
-  colnames(data_chr) <- colnames(chr_merged_data)
-  
-  # Merge the data frames by common columns: chr, start, end, and strand
-  chr_merged_data <-
-    merge(
-      chr_merged_data,
-      data_chr,
-      by = c("chr", "start", "end", "strand"),
-      all = TRUE
-    )
-}
-
-library(dplyr)
+s <- 1
+n_file <- 1
+chr <- CHR_NAMES[22]
 
 # Loop through each file
-for(s in 1:length(biosamples) {
+for(s in 1:length(biosamples)) {
   sample <- biosamples[s]
-  file_list <- list.files(path = sample, pattern = ".rds")
+  file_list <- list.files(path = sample, pattern = "\\.rds$")
+  file_list <- file_list[!grepl("chr", files)]
   
-  for(n_file in 1:length(file_list) {
+  
+  for(n_file in 1:length(file_list)) {
     file <- file_list[n_file]
     file_name <- file.path(sample, file)
     print(file_name)
     # Read the data from the file
     data <- readRDS(file_name)
-
-    if(n_file == 1){
-      merged_data <- data
-    }else{
-      
+    for(chr in CHR_NAMES) {
+      chr_data <- data[data$chr == chr,]
+      chr_data$m_read <-
+        round(chr_data$n_read * chr_data$f_read / 100)
+      colnames(chr_data)[7:9] <-
+        paste(
+          colnames(chr_data)[7:9],
+          sample,
+          gsub(
+            pattern = ".rds",
+            replacement = "",
+            x = file
+          ),
+          sep = "_"
+        )
+      saveRDS(object = chr_data, file = file.path(sample, paste(chr, sample, file, sep = ".")))
     }
-   
-    merged_data <- merged_data %>%
-      mutate(
-        nRead = ifelse(is.na(n_read.y), n_read.x, n_read.x + n_read.y),
-        fRead = ifelse(
-          is.na(n_read.y),
-          round(n_read.x * f_read.x / 100),
-          (round(n_read.x * f_read.x / 100) + round(n_read.y * f_read.y / 100)) / nRead
-        ),
-        score = ifelse(is.na(score.y), score.x, score.x + score.y)
-      ) %>%
-      select(chr, start, end, name, score, strand, nRead, fRead, m_read) %>%
-      distinct() # Remove duplicated rows
-    
-    # Save the merged data frame for the current sample
-    saveRDS(object = chr_merged_data, file = file.path(sample, paste0(sample, "_merged.rds")))
   }
-}
-
-# Loop through each chromosome
-for (chr in CHR_NAMES) {
+}   
+######################################################
+for(chr in CHR_NAMES) {
+  chr_data <- readRDS(file = paste0(chr, ".WGBS.rds"))
   print(chr)
-  # Subset data for the current chromosome
-  chr_data <- merged_data %>% filter(chr == .data$chr)
+  # Define the columns you want to replace NA values with 0
+  columns_to_replace_na <-
+    colnames(chr_data)[grepl("^n_read_|^m_read_", colnames(chr_data))]
   
-  # Group by chromosome and start position, summarize reads according to biosample
+  # Replace NA values with 0
   chr_data <- chr_data %>%
-    group_by(chr, start) %>%
-    summarise(
-      across(starts_with("n_read_"), ~ sum(.x)),
-      across(starts_with("f_read_"), ~ sum(.x * n_read) / sum(n_read)),
-      across(starts_with("m_read_"), ~ sum(.x * n_read) / sum(n_read)),
-      .groups = "drop"
-    )
+    mutate_at(vars(columns_to_replace_na), ~ ifelse(is.na(.), 0, .))
   
-  # Recalculate f_read column
-  chr_data <- chr_data %>% 
-    mutate(across(starts_with("f_read_"), ~ round(. * 100, digits = 2)))
+  # # Define the biosamples you want to sum up
+  # biosamples <- c("HepG2", "K562", "A549", "GM12878")
   
-  # Save the result to a file
-  saveRDS(object = chr_data,file = paste0(chr, "_merged_WGBS.rds"))
-  cat("Chromosome", chr, "processed and saved as", file_name, "\n")
+  # Create new columns by summing up the values for each biosample
+  for (sample in biosamples) {
+    n_read_cols <-
+      grep(paste0("^n_read_", sample), colnames(chr_data), value = TRUE)
+    m_read_cols <-
+      grep(paste0("^m_read_", sample), colnames(chr_data), value = TRUE)
+    
+    chr_data <- chr_data %>%
+      mutate(
+        !!paste0("nRead_", sample) := rowSums(select(., all_of(n_read_cols)), na.rm = TRUE),!!paste0("mRead_", sample) := rowSums(select(., all_of(m_read_cols)), na.rm = TRUE)
+      )
+    chr_data <- chr_data %>%
+      mutate(!!paste0("fRead_", sample) := get(paste0("mRead_", sample)) / get(paste0("nRead_", sample)))
+  }
+  # Select columns
+  selected_data <- chr_data %>%
+    select(chr, start, end, name, score, strand, starts_with("nRead_"), starts_with("fRead_"), starts_with("mRead_"))
+  
+  # Save the selected data to an RDS file
+  saveRDS(selected_data, file = paste(chr,"merged","WGBS","rds",sep = "."))
 }
