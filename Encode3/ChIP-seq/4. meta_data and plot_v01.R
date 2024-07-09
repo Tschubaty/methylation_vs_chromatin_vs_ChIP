@@ -99,3 +99,16 @@ for (target in proteins) {
                   plot = p_all)
 }
 
+
+###########
+
+meta_summary <- readRDS("C:/Users/Daniel Batyrev/Documents/GitHub/methylation_vs_chromatin_vs_ChIP/Encode3/ChIP-seq/2.filter_samples/meta_summery.RDS")
+
+# Extract protein names without the "-human" suffix
+protein_names <- gsub("-human", "", meta_summary$Experiment.target)
+
+# Write to a text file
+writeLines(text = protein_names,con = file.path(this.dir,"protein_names.txt"))
+
+# Verify the output
+cat(protein_names, sep = "\n")
