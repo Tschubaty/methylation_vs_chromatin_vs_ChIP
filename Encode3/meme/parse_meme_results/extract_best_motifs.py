@@ -43,7 +43,6 @@ print(f"Extracted {len(extracted_data)} rows.")
 if extracted_data:
     print(f"Sample data row ({len(extracted_data[0])}): {extracted_data[0]}")
 
-
 # Close the WebDriver
 driver.quit()
 
@@ -55,11 +54,14 @@ if len(columns) != len(extracted_data[0]):
 # Convert the extracted data to a DataFrame
 extracted_df = pd.DataFrame(extracted_data, columns=columns)
 
+# Replace empty strings with NaN
+extracted_df.replace("", float("NaN"), inplace=True)
+
 # Remove empty columns
 extracted_df.dropna(axis=1, how='all', inplace=True)
 
 # Display the first few rows of the DataFrame
-print("Extracted DataFrame:")
+print("Extracted DataFrame after removing empty columns:")
 print(extracted_df.head())
 
 # Find the best concentration value
@@ -68,25 +70,4 @@ best_row = extracted_df.loc[extracted_df['Concentration'].astype(float).idxmax()
 print("Best row with the highest concentration value:")
 print(best_row)
 
-print(best_row)
 
-# Load the TSV file
-tsv_file_path = "C:/Users/Daniel Batyrev/Documents/GitHub/methylation_vs_chromatin_vs_ChIP/Encode3/UniProt/idmapping_reviewed_true_AND_model_organ_2024_06_16.tsv"
-print(f"Loading TSV file from {tsv_file_path}...")
-tsv_df = pd.read_csv(tsv_file_path, sep='\t')
-
-print("Original TSV DataFrame:")
-print(tsv_df.head())
-
-# Append the best row's data to the TSV DataFrame
-for col in column_names:
-    tsv_df[col] = best_row[col]
-
-print("Updated TSV DataFrame with new columns:")
-print(tsv_df.head())
-
-# Save the updated DataFrame to a new TSV file
-output_tsv_path = "C:/Users/Daniel Batyrev/Documents/GitHub/methylation_vs_chromatin_vs_ChIP/Encode3/UniProt/updated_idmapping.tsv"
-tsv_df.to_csv(output_tsv_path, sep='\t', index=False)
-
-print(f"Updated TSV file saved to: {output_tsv_path}")
