@@ -33,6 +33,16 @@ for protein_folder in os.listdir(base_path):
         # Allow time for the JavaScript to execute
         time.sleep(3)  # Adjust the sleep time if necessary
 
+        # Click the "Expand All Clusters" button
+        try:
+            expand_all_button = driver.find_element(By.XPATH,
+                                                    "//span[@class='action' and text()='Expand All Clusters']")
+            expand_all_button.click()
+            time.sleep(2)  # Wait for the clusters to expand
+            print(f"Clicked 'Expand All Clusters' for {protein_name}.")
+        except Exception as e:
+            print(f"Error clicking 'Expand All Clusters' for {protein_name}: {e}")
+
         # Check if the HTML file is loaded
         if "404 Not Found" in driver.title:
             print(f"Error: {html_file_path} not found")
@@ -43,15 +53,28 @@ for protein_folder in os.listdir(base_path):
         motif_boxes = driver.find_elements(By.CSS_SELECTOR, ".motifbox")
         print(f"Found {len(motif_boxes)} motif boxes in {protein_name}.")
 
-        for box in motif_boxes:
+        for box_index, box in enumerate(motif_boxes):
             try:
                 # Check the inner HTML of the motif box for debugging
                 inner_html = box.get_attribute('innerHTML')
-                print(f"Motif box inner HTML: {inner_html[:200]}...")  # Print the first 200 characters
+                print(f"Motif box {box_index + 1} inner HTML: {inner_html[:200]}...")  # Print the first 200 characters
 
                 # Extract group information
-                group_table = box.find_element(By.CSS_SELECTOR, "table.motifs")
-                group_name = box.find_element(By.CSS_SELECTOR, "span.action a").text.strip()
+                try:
+                    group_table = box.find_element(By.CSS_SELECTOR, "table.motifs")
+                except Exception as e:
+                    print(f"Error finding table.motifs in box {box_index + 1}: {e}")
+                    print(f"Motif box {box_index + 1} full inner HTML: {inner_html}")
+                    continue
+
+                try:
+                    group_name_element = box.find_element(By.CSS_SELECTOR, "span.action a")
+                    group_name = group_name_element.text.strip()
+                except Exception as e:
+                    print(f"Error finding span.action a in box {box_index + 1}: {e}")
+                    print(f"Motif box {box_index + 1} full inner HTML: {inner_html}")
+                    group_name = "Unknown Group"
+
                 group_id = f"Group_{group_counter}"
                 group_counter += 1
                 print(f"Processing group: {group_name} with ID {group_id}")
@@ -59,13 +82,17 @@ for protein_folder in os.listdir(base_path):
                 print(f"Found {len(rows)} rows in group {group_name}.")
 
                 # Extract motif information for each row
-                for row in rows:
+                for row_index, row in enumerate(rows):
                     cols = row.find_elements(By.TAG_NAME, "td")
-                    print(f"Found {len(cols)} columns in row.")
+                    print(f"Found {len(cols)} columns in row {row_index + 1} of group {group_name}.")
                     if len(cols) > 5:
                         # Extract the link from the "Discovery/Enrichment Program" column
-                        link_element = cols[1].find_element(By.TAG_NAME, "a")
-                        link_url = link_element.get_attribute("href") if link_element else ""
+                        try:
+                            link_element = cols[1].find_element(By.TAG_NAME, "a")
+                            link_url = link_element.get_attribute("href") if link_element else ""
+                        except Exception as e:
+                            link_url = ""
+                            print(f"Error extracting link URL in row {row_index + 1} of group {group_name}: {e}")
 
                         # Extract all links from the "SpaMo & FIMO" column
                         spamo_links = cols[5].find_elements(By.TAG_NAME, "a")
@@ -77,15 +104,16 @@ for protein_folder in os.listdir(base_path):
                         single_motif_id = single_motif_id_match.group(1) if single_motif_id_match else ""
 
                         motif_data = {
-                            "FIMO Group Name": group_name,
+                            "FIMO Group Name": "",  # Initialize as empty
                             "Group ID": group_id,
                             "Protein": protein_name,
-                            "FIMO Motif ID": cols[0].text.strip() if len(cols) > 0 else "",  # Add Motif ID
+                            "FIMO Motif ID": "",  # Will be filled later
                             "single Motif ID": single_motif_id,
                             "Enrichment Program": cols[1].text.strip() if len(cols) > 1 else "",
                             "single Motif source": link_url,
                             "meme-chip E-value": cols[2].text.strip() if len(cols) > 2 else "",
-                            "Known or Similar Motifs": cols[3].text.strip().replace("\n", "; ") if len(cols) > 3 else "",
+                            "Known or Similar Motifs": cols[3].text.strip().replace("\n", "; ") if len(
+                                cols) > 3 else "",
                             "Distribution": cols[4].text.strip() if len(cols) > 4 else "",
                             "SpaMo": spamo_links_combined,
                             "FIMO gff": "",  # To be filled later
@@ -94,7 +122,8 @@ for protein_folder in os.listdir(base_path):
                         all_groups.append(motif_data)
                         print(f"Added motif data: {motif_data}")
             except Exception as e:
-                print(f"Error processing box: {e}")
+                print(f"Error processing box {box_index + 1}: {e}")
+                print(f"Motif box {box_index + 1} full inner HTML: {inner_html}")
                 continue
 
         # Extract FIMO commands from the HTML
@@ -102,7 +131,9 @@ for protein_folder in os.listdir(base_path):
         fimo_commands = driver.find_elements(By.XPATH, "//script[contains(., 'fimo')]")
         for command in fimo_commands:
             command_text = command.get_attribute('innerHTML')
-            fimo_matches = re.findall(r'fimo --parse-genomic-coord --verbosity 1 --oc (.*?) --bgfile .*? --motif (.*?) (.*?) (.*?)', command_text)
+            fimo_matches = re.findall(
+                r'fimo --parse-genomic-coord --verbosity 1 --oc (.*?) --bgfile .*? --motif (.*?) (.*?) (.*?)',
+                command_text)
             for match in fimo_matches:
                 fimo_path, motif_id, motif_file, fasta_file = match
                 fimo_folder = fimo_path.split('/')[-1]  # Extract the folder name
@@ -119,13 +150,18 @@ for protein_folder in os.listdir(base_path):
 # Close the WebDriver
 driver.quit()
 
-# Post-process the data to copy group name, SpaMo, FIMO, and other info to all rows in the same group
+# Post-process the data to copy only specified columns by group name
 all_groups_df = pd.DataFrame(all_groups)
 for group_id in all_groups_df['Group ID'].unique():
     group_data = all_groups_df[all_groups_df['Group ID'] == group_id]
     if not group_data.empty:
-        all_groups_df.loc[all_groups_df['Group ID'] == group_id, ['FIMO Group Name', 'SpaMo', 'FIMO gff', 'FIMO Motif source file']] = group_data.iloc[0][['FIMO Group Name', 'SpaMo', 'FIMO gff', 'FIMO Motif source file']].values
-        all_groups_df.loc[all_groups_df['Group ID'] == group_id, ['Enrichment Program', 'meme-chip E-value', 'Known or Similar Motifs']] = group_data.iloc[0][['Enrichment Program', 'meme-chip E-value', 'Known or Similar Motifs']].values
+        all_groups_df.loc[
+            all_groups_df['Group ID'] == group_id, ['FIMO Group Name', 'SpaMo', 'FIMO gff', 'FIMO Motif source file',
+                                                    'FIMO Motif ID']] = group_data.iloc[0][
+            ['FIMO Group Name', 'SpaMo', 'FIMO gff', 'FIMO Motif source file', 'FIMO Motif ID']].values
+
+# Ensure that "FIMO Group Name" is empty if "FIMO gff" is empty
+all_groups_df.loc[all_groups_df['FIMO gff'] == "", 'FIMO Group Name'] = ""
 
 # Create a DataFrame for all motifs and save to a CSV file
 output_csv_path = "C:/Users/Daniel Batyrev/Documents/GitHub/methylation_vs_chromatin_vs_ChIP/Encode3/meme/meme-chip_results/all_motifs_groups3.csv"
