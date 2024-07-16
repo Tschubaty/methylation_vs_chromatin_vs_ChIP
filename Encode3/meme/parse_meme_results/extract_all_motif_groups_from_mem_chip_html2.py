@@ -147,6 +147,31 @@ for protein_folder in os.listdir(base_path):
 
         print(f"Extracted motifs for {protein_name}.")
 
+        # Process the centrimo.html to extract concentration values
+        centrimo_html_file_path = f'file:///{base_path}/{protein_folder}/centrimo_out/centrimo.html'
+        driver.get(centrimo_html_file_path)
+        time.sleep(3)  # Adjust the sleep time if necessary
+
+        # Extract the concentration values
+        centrimo_rows = driver.find_elements(By.CSS_SELECTOR, "#motifs tbody tr")
+        centrimo_data = []
+        for row in centrimo_rows:
+            cols = row.find_elements(By.TAG_NAME, "td")
+            if len(cols) > 5:
+                data_row = {
+                    "Motif ID": cols[2].text.strip(),
+                    "Concentration": cols[5].text.strip()
+                }
+                centrimo_data.append(data_row)
+
+        # Update the Distribution column with concentration values
+        for group in all_groups:
+            for centrimo in centrimo_data:
+                if centrimo["Motif ID"] == group["single Motif ID"]:
+                    group["Distribution"] = centrimo["Concentration"]
+                    print(
+                        f"Updated concentration for motif {group['single Motif ID']} in group {group['Group ID']}: {centrimo['Concentration']}")
+
 # Close the WebDriver
 driver.quit()
 
@@ -160,6 +185,7 @@ for group_id in all_groups_df['Group ID'].unique():
                                                     'FIMO Motif ID']] = group_data.iloc[0][
             ['FIMO Group Name', 'SpaMo', 'FIMO gff', 'FIMO Motif source file', 'FIMO Motif ID']].values
 
+# ```python
 # Ensure that "FIMO Group Name" is empty if "FIMO gff" is empty
 all_groups_df.loc[all_groups_df['FIMO gff'] == "", 'FIMO Group Name'] = ""
 
