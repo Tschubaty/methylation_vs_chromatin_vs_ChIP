@@ -1,1 +1,0 @@
-Duplicate sequence: chr4:1712544-1712931.

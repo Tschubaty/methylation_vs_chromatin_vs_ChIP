@@ -1,1 +1,0 @@
-Duplicate sequence: chr1:16613467-16614013.

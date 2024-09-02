@@ -1,2 +1,0 @@
-Duplicate sequence: chr20:2470475-2470959.
-Duplicate sequence: chr16:1964738-1965095.

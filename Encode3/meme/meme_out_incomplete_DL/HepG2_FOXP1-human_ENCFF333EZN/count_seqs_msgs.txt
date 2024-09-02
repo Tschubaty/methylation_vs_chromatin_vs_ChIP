@@ -1,6 +1,0 @@
-Duplicate sequence: chr18:79563843-79564751.
-Duplicate sequence: chrX:1289547-1290280.
-Duplicate sequence: chrX:20211382-20211897.
-Duplicate sequence: chr2:53826883-53827219.
-Duplicate sequence: chrX:1289547-1290280.
-Duplicate sequence: chr17:80629353-80629888.

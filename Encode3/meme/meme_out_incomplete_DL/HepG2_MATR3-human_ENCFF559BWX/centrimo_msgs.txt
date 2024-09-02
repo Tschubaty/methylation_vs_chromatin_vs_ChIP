@@ -1,1 +1,0 @@
-Skipping sequence chr14:35535355-35535427 as its length (72) does not match the expected length (264).

@@ -1,2 +1,0 @@
-Skipping sequence chr11:66421682-66421837 as its length (155) does not match the expected length (416).
-Skipping sequence chr17:43361061-43361234 as its length (173) does not match the expected length (416).

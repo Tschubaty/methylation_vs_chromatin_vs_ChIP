@@ -1,4 +1,0 @@
-Duplicate sequence: chr1:55429068-55429579.
-Duplicate sequence: chr16:14399460-14399780.
-Duplicate sequence: chr12:57520631-57520942.
-Duplicate sequence: chr18:109079-109510.

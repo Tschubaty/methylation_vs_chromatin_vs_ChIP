@@ -1,2 +1,0 @@
-Duplicate sequence: chr17:75784417-75784936.
-Duplicate sequence: chr14:21269542-21269954.

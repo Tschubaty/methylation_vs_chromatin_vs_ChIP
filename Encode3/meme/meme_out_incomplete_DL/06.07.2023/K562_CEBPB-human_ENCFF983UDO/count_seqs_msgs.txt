@@ -1,2 +1,0 @@
-Duplicate sequence: chr12:101877182-101877679.
-Duplicate sequence: chr9:19154092-19154581.

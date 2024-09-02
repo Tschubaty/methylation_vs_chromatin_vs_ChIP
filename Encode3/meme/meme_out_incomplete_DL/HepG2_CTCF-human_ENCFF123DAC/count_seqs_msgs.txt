@@ -1,7 +1,0 @@
-Duplicate sequence: chr17:42067348-42067826.
-Duplicate sequence: chr14:22557004-22557484.
-Duplicate sequence: chr2:219541609-219542072.
-Duplicate sequence: chr14:106094617-106095138.
-Duplicate sequence: chr14:105999349-105999944.
-Duplicate sequence: chr17:50200556-50201005.
-Duplicate sequence: chr14:106308823-106309341.

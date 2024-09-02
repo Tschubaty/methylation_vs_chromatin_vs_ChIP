@@ -1,4 +1,0 @@
-Duplicate sequence: chr21:8991680-8993213.
-Duplicate sequence: chr21:8991680-8993213.
-Duplicate sequence: chr20:33025205-33025990.
-Duplicate sequence: chrM:15908-16512.

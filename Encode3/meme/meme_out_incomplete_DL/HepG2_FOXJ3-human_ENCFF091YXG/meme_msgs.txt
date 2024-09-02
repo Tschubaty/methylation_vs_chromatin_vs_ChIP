@@ -1,1 +1,0 @@
-Duplicate sequence name. Skipping 'chr2:101566864-101566847'.
