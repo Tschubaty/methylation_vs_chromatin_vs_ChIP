@@ -59,11 +59,20 @@ library(tidyr)
 
 ##################################### INPUT ########################################
 # Define the input directory for chromosome files
-input_dir <- "C:/Users/Daniel Batyrev/Documents/GitHub/methylation_vs_chromatin_vs_ChIP/Encode3/WGBS/byChr/concat_methylation"
+input_dir <- file.path(this.dir,"WGBS/byChr/concat_methylation")
 
 # Set up parallel processing
 n_cores <- detectCores() - 1
 registerDoParallel(cores = n_cores)
+
+
+# Define the directory where you want to save the plots
+output_dir <- file.path(this.dir,"plots")
+
+# Ensure the output directory exists
+if (!dir.exists(output_dir)) {
+  dir.create(output_dir, recursive = TRUE)
+}
 
 
 ################################## constants #####################################
@@ -137,147 +146,195 @@ chromatin_state_map
 
 ##################################### Functions #################################
 
-combined_df_chr <- NULL
-chr_files <- file.path(input_dir,paste0(CHR_NAMES,"_cpgs_island_all_methylation.bed"))
 
-for(chr_file in chr_files){   #chr_file
-  print(chr_file)
-  df_chr <- readr::read_delim(chr_file, delim = "\t", col_names = TRUE, show_col_types = FALSE)
+######################## preprocessing long format start ###########################
+if (FALSE) {
   
-  # Rename the `#Chromosome` column to `chr`
-  df_chr <- df_chr %>%
-    rename(chr = `#Chromosome`)  # Rename the column
+  combined_df_chr <- NULL
+  chr_files <- file.path(input_dir,paste0(CHR_NAMES,"_cpgs_island_all_methylation.bed"))
   
-  #  Replace "." with NA in all columns (character and numeric-like)
-  df_chr <- df_chr %>%
-    mutate(across(everything(), ~ ifelse(. == "." | .== "Not_in_CpG_Island", NA, .)))  # Replace "." with NA for all columns
-  
-  # Assuming `df_chr` is your data frame
-  
-  # Convert specific columns to factors and the rest to integers
-  df_chr <- df_chr %>%
-    # Convert Chromosome and Chromatin_State columns to factors
-    mutate(
-      across(chr, as.factor),  # Convert `#Chromosome` to factor
-      across(starts_with("Chromatin_State"), as.factor)  # Convert all Chromatin_State columns to factors
-    ) %>%
-    # Convert remaining numeric columns to integers
-    mutate(
-      across(where(is.numeric), as.integer)
-    )
-
-  if (is.null(combined_df_chr)) {
-    combined_df_chr <- df_chr
-  } else {
-    combined_df_chr <- bind_rows(combined_df_chr, df_chr)
+  for(chr_file in chr_files){   #chr_file
+    print(chr_file)
+    df_chr <- readr::read_delim(chr_file, delim = "\t", col_names = TRUE, show_col_types = FALSE)
+    
+    # Rename the `#Chromosome` column to `chr`
+    df_chr <- df_chr %>%
+      rename(chr = `#Chromosome`)  # Rename the column
+    
+    #  Replace "." with NA in all columns (character and numeric-like)
+    df_chr <- df_chr %>%
+      mutate(across(everything(), ~ ifelse(. == "." | .== "Not_in_CpG_Island", NA, .)))  # Replace "." with NA for all columns
+    
+    # Assuming `df_chr` is your data frame
+    
+    # Convert specific columns to factors and the rest to integers
+    df_chr <- df_chr %>%
+      # Convert Chromosome and Chromatin_State columns to factors
+      mutate(
+        across(chr, as.factor),  # Convert `#Chromosome` to factor
+        across(starts_with("Chromatin_State"), as.factor)  # Convert all Chromatin_State columns to factors
+      ) %>%
+      # Convert remaining numeric columns to integers
+      mutate(
+        across(where(is.numeric), as.integer)
+      )
+    
+    if (is.null(combined_df_chr)) {
+      combined_df_chr <- df_chr
+    } else {
+      combined_df_chr <- bind_rows(combined_df_chr, df_chr)
+    }
+    
+    
   }
   
+  # Save the concatenated dataframe to a file
+  output_file <- file.path(input_dir, "combined_methylation_data.bed")
+  write_delim(combined_df_chr, output_file, delim = "\t")
   
-}
-
-
-# Save the concatenated dataframe to a file
-output_file <- file.path(input_dir, "combined_methylation_data.bed")
-write_delim(combined_df_chr, output_file, delim = "\t")
-
-cat("Final concatenated data saved to:", output_file, "\n")
-
-# End script timing
-end_script <- Sys.time()
-cat("Script completed in:", end_script - start_script, "\n")
-
-##################################### Main ######################################
-combined_df_chr <- read_delim("C:/Users/Daniel Batyrev/Documents/GitHub/methylation_vs_chromatin_vs_ChIP/Encode3/WGBS/byChr/concat_methylation/combined_methylation_data.bed")
-
-
-# Define the directory where you want to save the plots
-output_dir <- "C:/Users/Daniel Batyrev/Documents/GitHub/methylation_vs_chromatin_vs_ChIP/Encode3/plots/"
-
-# Ensure the output directory exists
-if (!dir.exists(output_dir)) {
-  dir.create(output_dir, recursive = TRUE)
-}
-################################### Figure 2a) #####################
-
-# Number of chunks
-num_chunks <- 1000
-
-# Define the number of rows per chunk
-total_rows <- nrow(combined_df_chr)
-chunk_size <- ceiling(total_rows / num_chunks)
-
-# Loop over each chunk to process sequentially
-for (chunk_idx in 1:num_chunks) {
-  cat("Processing chunk", chunk_idx, "of", num_chunks, "\n")
+  cat("Final concatenated data saved to:", output_file, "\n")
   
-  # Define the row indices for the current chunk
-  start_idx <- (chunk_idx - 1) * chunk_size + 1
-  end_idx <- min(chunk_idx * chunk_size, total_rows)
+  # End script timing
+  end_script <- Sys.time()
+  cat("Script completed in:", end_script - start_script, "\n")
   
-  # Subset the data for the current chunk
-  df_chunk <- combined_df_chr[start_idx:end_idx, ]
+  #combined_df_chr <- read_delim(file = file.path(input_dir,"combined_methylation_data.bed"))
   
-  # Recalculate fRead for each biosample in the chunk
-  df_chunk <- df_chunk %>%
-    mutate(
-      fRead_A549 = ifelse(nRead_A549 == 0, NA, as.double(mRead_A549 / nRead_A549)),
-      fRead_GM12878 = ifelse(nRead_GM12878 == 0, NA, as.double(mRead_GM12878 / nRead_GM12878)),
-      fRead_HepG2 = ifelse(nRead_HepG2 == 0, NA, as.double(mRead_HepG2 / nRead_HepG2)),
-      fRead_K562 = ifelse(nRead_K562 == 0, NA, as.double(mRead_K562 / nRead_K562))
-    )
+  # Number of chunks
+  num_chunks <- 1000
   
-  # Reshape the data: gather fRead, mRead, nRead, and Chromatin_State into long format
-  df_long_fRead_chunk <- df_chunk %>%
-    pivot_longer(
-      cols = starts_with("fRead"),  # Gather all fRead columns
-      names_to = "Biosample",        # Create a new column called "Biosample"
-      values_to = "fRead"            # Store the recalculated fRead values
-    ) %>%
-    mutate(
-      # Remove the "fRead_" prefix from the biosample names
-      Biosample = gsub("fRead_", "", Biosample)
-    ) %>%
-    pivot_longer(
-      cols = c(starts_with("mRead"), starts_with("nRead"), starts_with("Chromatin_State")),
-      names_pattern = "(.*)_(.*)",  # Extract variable name and biosample name
-      names_to = c(".value", "BiosampleMatch")  # `.value` splits into the respective columns
-    ) %>%
-    filter(Biosample == BiosampleMatch) %>%  # Keep rows where Biosample matches the specific columns
-    select(chr, Start, End, CpG_Island_Status, Strand, fRead, mRead, nRead, Chromatin_State, Biosample)  # Keep only the required columns
+  # Define the number of rows per chunk
+  total_rows <- nrow(combined_df_chr)
+  chunk_size <- ceiling(total_rows / num_chunks)
   
-  # Save each chunk directly to disk
-  chunk_filename <- file.path(output_dir, paste0("df_long_fRead_chunk_", chunk_idx, ".csv"))
-  write.csv(df_long_fRead_chunk, chunk_filename, row.names = FALSE)
+  # Loop over each chunk to process sequentially
+  for (chunk_idx in 1:num_chunks) {
+    cat("Processing chunk", chunk_idx, "of", num_chunks, "\n")
+    
+    # Define the row indices for the current chunk
+    start_idx <- (chunk_idx - 1) * chunk_size + 1
+    end_idx <- min(chunk_idx * chunk_size, total_rows)
+    
+    # Subset the data for the current chunk
+    df_chunk <- combined_df_chr[start_idx:end_idx, ]
+    
+    # Recalculate fRead for each biosample in the chunk
+    df_chunk <- df_chunk %>%
+      mutate(
+        fRead_A549 = ifelse(nRead_A549 == 0, NA, as.double(mRead_A549 / nRead_A549)),
+        fRead_GM12878 = ifelse(
+          nRead_GM12878 == 0,
+          NA,
+          as.double(mRead_GM12878 / nRead_GM12878)
+        ),
+        fRead_HepG2 = ifelse(nRead_HepG2 == 0, NA, as.double(mRead_HepG2 / nRead_HepG2)),
+        fRead_K562 = ifelse(nRead_K562 == 0, NA, as.double(mRead_K562 / nRead_K562))
+      )
+    
+    # Reshape the data: gather fRead, mRead, nRead, and Chromatin_State into long format
+    df_long_fRead_chunk <- df_chunk %>%
+      pivot_longer(
+        cols = starts_with("fRead"),
+        # Gather all fRead columns
+        names_to = "Biosample",
+        # Create a new column called "Biosample"
+        values_to = "fRead"            # Store the recalculated fRead values
+      ) %>%
+      mutate(# Remove the "fRead_" prefix from the biosample names
+        Biosample = gsub("fRead_", "", Biosample)) %>%
+      pivot_longer(
+        cols = c(
+          starts_with("mRead"),
+          starts_with("nRead"),
+          starts_with("Chromatin_State")
+        ),
+        names_pattern = "(.*)_(.*)",
+        # Extract variable name and biosample name
+        names_to = c(".value", "BiosampleMatch")  # `.value` splits into the respective columns
+      ) %>%
+      filter(Biosample == BiosampleMatch) %>%  # Keep rows where Biosample matches the specific columns
+      select(
+        chr,
+        Start,
+        End,
+        CpG_Island_Status,
+        Strand,
+        fRead,
+        mRead,
+        nRead,
+        Chromatin_State,
+        Biosample
+      )  # Keep only the required columns
+    
+    # Save each chunk directly to disk
+    chunk_filename <- file.path(output_dir,
+                                paste0("df_long_fRead_chunk_", chunk_idx, ".csv"))
+    write.csv(df_long_fRead_chunk, chunk_filename, row.names = FALSE)
+    
+    # Remove the temporary variables and run garbage collection
+    rm(df_chunk, df_long_fRead_chunk)
+    gc()
+    
+    # Optional: Print progress
+    cat("Processed and saved chunk",
+        chunk_idx,
+        "of",
+        num_chunks,
+        "\n")
+  }
   
-  # Remove the temporary variables and run garbage collection
-  rm(df_chunk, df_long_fRead_chunk)
+  # Now, after all chunks are saved, combine the files from disk
+  
+  # Get a list of all chunk files
+  chunk_files <- list.files(output_dir, pattern = "df_long_fRead_chunk_.*\\.csv", full.names = TRUE)
+  
+  # Combine the files incrementally
+  df_long_combined <- do.call(rbind, lapply(chunk_files, read.csv))
+  
+  # Save the combined data to disk
+  #write.csv(df_long_combined, file = file.path(output_dir, "df_long_combined.csv"), row.names = FALSE)
+  
+  # Cleanup: Remove only the temporary variables created in this script, not everything
+  rm(chunk_idx, chunk_size, total_rows, num_chunks, chunk_files)
   gc()
   
-  # Optional: Print progress
-  cat("Processed and saved chunk", chunk_idx, "of", num_chunks, "\n")
+  cat(
+    "Processing complete and combined dataframe saved to",
+    file.path(output_dir, "df_long_combined.csv"),
+    "\n"
+  )
+  
+  # Convert character columns to factors
+  # Specify level order for chr, Strand, and Biosample
+  df_long_combined$chr <- factor(df_long_combined$chr, levels = CHR_NAMES)
+  df_long_combined$Strand <- factor(df_long_combined$Strand, levels = c("+", "-"))
+  df_long_combined$Biosample <- factor(df_long_combined$Biosample, levels = names(group.colors))
+  
+  saveRDS(object = df_long_combined,
+          file = file.path(output_dir, "df_long_combined.RDS"))
 }
+######################## preprocessing long format ended #######################
+if(FALSE){
+  df_long_combined <- readRDS(file = file.path(output_dir, "df_long_combined.RDS"))
+  # Create violin plot using the combined dataframe
+  
+  df_long_Chromatin_State_Biosample_fRead <- df_long_combined[,c("Chromatin_State","Biosample","fRead")]
+  rm(df_long_combined)
+  gc()
+  
+  saveRDS(object = df_long_Chromatin_State_Biosample_fRead,
+          file = file.path(output_dir, "df_long_Chromatin_State_Biosample_fRead.RDS"))
+}
+##################################### Main ######################################
+df_long_Chromatin_State_Biosample_fRead <- readRDS(file = file.path(output_dir, 
+                                                                    "df_long_Chromatin_State_Biosample_fRead.RDS"))
+df_long_Chromatin_State_Biosample_fRead$Chromatin_State <- factor(df_long_Chromatin_State_Biosample_fRead$Chromatin_State, levels =seq(1,18))
+################################### Figure 2a) #################################
 
-# Now, after all chunks are saved, combine the files from disk
 
-# Get a list of all chunk files
-chunk_files <- list.files(output_dir, pattern = "df_long_fRead_chunk_.*\\.csv", full.names = TRUE)
-
-# Combine the files incrementally
-df_long_combined <- do.call(rbind, lapply(chunk_files, read.csv))
-
-# Save the combined data to disk
-write.csv(df_long_combined, file = file.path(output_dir, "df_long_combined.csv"), row.names = FALSE)
-
-# Cleanup: Remove only the temporary variables created in this script, not everything
-rm(chunk_idx, chunk_size, total_rows, num_chunks, chunk_files)
-gc()
-
-cat("Processing complete and combined dataframe saved to", file.path(output_dir, "df_long_combined.csv"), "\n")
-
-
-# Create violin plot using the combined dataframe
-violin_plot <- ggplot(df_long_fRead_combined, aes(x = Biosample, y = fRead, fill = Biosample)) +
+violin_plot <- ggplot(df_long_Chromatin_State_Biosample_fRead, aes(x = Biosample, y = fRead, fill = Biosample)) +
   geom_violin(trim = TRUE) +
+  scale_fill_manual(values = group.colors) +  # Use the group.colors for fill
   labs(
     title = "Distribution of fRead by Biosample",
     x = "Biosample",
@@ -286,7 +343,7 @@ violin_plot <- ggplot(df_long_fRead_combined, aes(x = Biosample, y = fRead, fill
   theme_minimal()
 
 # Display the violin plot
-print(violin_plot)
+#print(violin_plot)
 
 # Save the violin plot to disk
 ggsave(
@@ -295,76 +352,165 @@ ggsave(
   width = 10, height = 6, units = "in"
 )
 
+rm(violin_plot)
+gc()
+
+box_plot <- ggplot(df_long_Chromatin_State_Biosample_fRead, aes(x = Biosample, y = fRead, fill = Biosample)) +
+  scale_fill_manual(values = group.colors) +  # Use the group.colors for fill
+  geom_boxplot(outliers = FALSE) +
+  labs(
+    title = "Distribution of fRead by Biosample",
+    x = "Biosample",
+    y = "fRead"
+  ) +
+  theme_minimal()
+
+# Display the violin plot
+#print(violin_plot)
+
+# Save the violin plot to disk
+ggsave(
+  filename = file.path(output_dir, "box_plot2a.png"),
+  plot = box_plot,
+  width = 10, height = 6, units = "in"
+)
+
+rm(box_plot)
+gc()
+
+
+box_plot_states <- ggplot(df_long_Chromatin_State_Biosample_fRead, aes(x = Chromatin_State, y = fRead, fill = Biosample)) +
+  scale_fill_manual(values = group.colors) +  # Use the group.colors for fill
+  geom_boxplot(outliers = FALSE) +
+  labs(
+    title = "Distribution of fRead by Biosample",
+    x = "ChromHMM  states",
+    y = "genome wide methylation values"
+  ) +
+  theme_minimal()
+
+# Save the violin plot to disk
+ggsave(
+  filename = file.path(output_dir, "box_plot2bChromatin_State.png"),
+  plot = box_plot_states,
+  width = 10, height = 6, units = "in"
+)
+
+rm(box_plot_states)
+gc()
+
+
+# Create the bar plot
+bar_plot_state_count <- ggplot(df_long_Chromatin_State_Biosample_fRead, aes(x = Chromatin_State, fill = Biosample)) +
+  geom_bar(position = "dodge") +  # Use 'dodge' to place bars side by side
+  scale_fill_manual(values = group.colors) +  # Use the custom colors for biosamples
+  labs(
+    x = "Chromatin State",
+    y = "Count of Entries"
+  ) +
+  theme_minimal()
+
+# Save the violin plot to disk
+ggsave(
+  filename = file.path(output_dir, "box_plot2dChromatin_State_count.png"),
+  plot = bar_plot_state_count ,
+  width = 10, height = 6, units = "in"
+)
+rm(bar_plot_state_count)
+gc()
 
 #################################################################
 
-# Reshape the data: gather chromatin state columns into long format
-df_long <- combined_df_chr %>%
-  pivot_longer(
-    cols = starts_with("Chromatin_State"), 
-    names_to = "Biosample", 
-    values_to = "Chromatin_State"
+
+################## summer table ##############################################
+
+# Calculate the summary table
+genome_summary_table <- df_long_Chromatin_State_Biosample_fRead %>%
+  # Calculate total entries per Biosample
+  group_by(Biosample) %>%
+  mutate(total_entries = n()) %>%
+  # Group by Biosample and Chromatin_State
+  group_by(Biosample, Chromatin_State, total_entries) %>%
+  summarise(
+    mean_fRead = mean(fRead, na.rm = TRUE),
+    count_entries = n()
   ) %>%
-  mutate(
-    # Remove the "Chromatin_State_" prefix from the biosample names
-    Biosample = gsub("Chromatin_State_", "", Biosample)
-  )
+  # Calculate percentage of entries
+  mutate(percentage_entries = (count_entries / total_entries) * 100) %>%
+  ungroup()
 
-# Plot the distribution of chromatin states, with dodge by biosample
-chromatin_plot <- ggplot(df_long, aes(x = Chromatin_State, fill = Biosample)) +
-  geom_bar(position = "dodge") +
-  scale_fill_manual(values = group.colors) +
-  labs(
-    title = "Distribution of Chromatin States by Biosample",
-    x = "Chromatin State",
-    y = "Count",
-    fill = "Biosample"
-  ) +
-  theme_minimal()
+#sum(summary_table$percentage_entries[summary_table$Biosample == "HepG2"])
+saveRDS(object = genome_summary_table,file = file.path(output_dir,"genome_summary_table.rds"))
 
-# Save the chromatin state distribution plot
-ggsave(
-  filename = file.path(output_dir, "chromatin_state_distribution.png"),
-  plot = chromatin_plot,
-  width = 10, height = 6, units = "in"
-)
+################################################################################
 
-rm(chromatin_plot, df_long)
-gc()  # Run garbage collection to free up memory
-
-# Reshape the data: gather fRead columns into long format
-df_long_fRead <- combined_df_chr %>%
-  pivot_longer(
-    cols = starts_with("fRead"),  # Gather all fRead columns
-    names_to = "Biosample",        # Create a new column called "Biosample"
-    values_to = "fRead"            # Store the values in a column called "fRead"
-  ) %>%
-  mutate(
-    # Remove the "fRead_" prefix from the biosample names
-    Biosample = gsub("fRead_", "", Biosample),
-    
-    # Convert Chromatin_State columns (for each biosample) to factors
-    across(starts_with("Chromatin_State"), as.factor)
-  )
-
-# Assuming you want to use one chromatin state column for plotting (e.g., Chromatin_State_A549)
-fread_boxplot <- ggplot(df_long_fRead, aes(x = Chromatin_State_A549, y = fRead, fill = Biosample)) +
-  geom_boxplot(position = position_dodge(width = 0.75), outlier.shape = NA) +
-  scale_fill_manual(values = group.colors) +  # Use predefined colors for biosamples
-  labs(
-    title = "Distribution of fRead by Chromatin State and Biosample",
-    x = "Chromatin State",
-    y = "fRead",
-    fill = "Biosample"
-  ) +
-  theme_minimal()
-
-# Save the fRead boxplot
-ggsave(
-  filename = file.path(output_dir, "fRead_boxplot.png"),
-  plot = fread_boxplot,
-  width = 10, height = 6, units = "in"
-)
-
-rm(fread_boxplot, df_long_fRead)
-gc()  # Run garbage collection to free up memory
+# # Reshape the data: gather chromatin state columns into long format
+# df_long <- combined_df_chr %>%
+#   pivot_longer(
+#     cols = starts_with("Chromatin_State"), 
+#     names_to = "Biosample", 
+#     values_to = "Chromatin_State"
+#   ) %>%
+#   mutate(
+#     # Remove the "Chromatin_State_" prefix from the biosample names
+#     Biosample = gsub("Chromatin_State_", "", Biosample)
+#   )
+# 
+# # Plot the distribution of chromatin states, with dodge by biosample
+# chromatin_plot <- ggplot(df_long, aes(x = Chromatin_State, fill = Biosample)) +
+#   geom_bar(position = "dodge") +
+#   scale_fill_manual(values = group.colors) +
+#   labs(
+#     title = "Distribution of Chromatin States by Biosample",
+#     x = "Chromatin State",
+#     y = "Count",
+#     fill = "Biosample"
+#   ) +
+#   theme_minimal()
+# 
+# # Save the chromatin state distribution plot
+# ggsave(
+#   filename = file.path(output_dir, "chromatin_state_distribution.png"),
+#   plot = chromatin_plot,
+#   width = 10, height = 6, units = "in"
+# )
+# 
+# rm(chromatin_plot, df_long)
+# gc()  # Run garbage collection to free up memory
+# 
+# # Reshape the data: gather fRead columns into long format
+# df_long_fRead <- combined_df_chr %>%
+#   pivot_longer(
+#     cols = starts_with("fRead"),  # Gather all fRead columns
+#     names_to = "Biosample",        # Create a new column called "Biosample"
+#     values_to = "fRead"            # Store the values in a column called "fRead"
+#   ) %>%
+#   mutate(
+#     # Remove the "fRead_" prefix from the biosample names
+#     Biosample = gsub("fRead_", "", Biosample),
+#     
+#     # Convert Chromatin_State columns (for each biosample) to factors
+#     across(starts_with("Chromatin_State"), as.factor)
+#   )
+# 
+# # Assuming you want to use one chromatin state column for plotting (e.g., Chromatin_State_A549)
+# fread_boxplot <- ggplot(df_long_fRead, aes(x = Chromatin_State_A549, y = fRead, fill = Biosample)) +
+#   geom_boxplot(position = position_dodge(width = 0.75), outlier.shape = NA) +
+#   scale_fill_manual(values = group.colors) +  # Use predefined colors for biosamples
+#   labs(
+#     title = "Distribution of fRead by Chromatin State and Biosample",
+#     x = "Chromatin State",
+#     y = "fRead",
+#     fill = "Biosample"
+#   ) +
+#   theme_minimal()
+# 
+# # Save the fRead boxplot
+# ggsave(
+#   filename = file.path(output_dir, "fRead_boxplot.png"),
+#   plot = fread_boxplot,
+#   width = 10, height = 6, units = "in"
+# )
+# 
+# rm(fread_boxplot, df_long_fRead)
+# gc()  # Run garbage collection to free up memory
