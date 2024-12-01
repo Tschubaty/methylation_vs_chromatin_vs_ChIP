@@ -182,6 +182,7 @@ for (protein in protein_folders) {
   # [1:1]
   # protein <- "CTCF"
   # protein <- "CEBPB"
+  # protein <- "MAX"
   print(protein)
   
   protein_data <- filtered_summary_df[filtered_summary_df$protein == protein, ]
@@ -245,17 +246,105 @@ for (protein in protein_folders) {
       fRead_col1 <- paste0("fRead_", biosample_comb[1])
       fRead_col2 <- paste0("fRead_", biosample_comb[2])
       
-      # Create the scatter plot
-      ggplot(df_state1, aes_string(x = fRead_col1, y = fRead_col2, color = "sample")) +
-        geom_point() +
+      ### ploting 
+      
+      # Function to create a heatmap for a specific sample
+      create_heatmap <- function(sample_name) {
+        # Filter for the specified sample
+        df_sample <- df_state1 %>% filter(sample == sample_name)
+        
+        # Define colors for the gradient, defaulting to grey if sample is not in group.colors
+        light_color <- "#f7fbff"
+        sample_color <- ifelse(sample_name %in% names(group.colors), group.colors[sample_name], "grey")
+        intermediate_color <- colorRampPalette(c(light_color, sample_color))(3)[2]
+        
+        # Define custom colors and values for gradient
+        custom_colors <- c(light_color, intermediate_color, sample_color)
+        custom_values <- c(0, 0.01, 1)
+        
+        # Create the 2D heatmap plot with custom color gradient and overlay all points
+        ggplot(df_sample, aes_string(x = fRead_col1, y = fRead_col2)) +
+          stat_bin2d(binwidth = c(0.025, 0.025), aes(fill = ..count..)) +  # Set bin width to ensure consistent binning
+          geom_point(color = sample_color, size = 1, alpha = 0.5) +
+          labs(
+            title = paste("ChIP in", sample_name),
+            x = paste("fRead_", biosample_comb[1]),
+            y = paste("fRead_", biosample_comb[2])
+          ) +
+          scale_fill_gradientn(colors = custom_colors, values = custom_values) +
+          coord_cartesian(xlim = c(0, 1), ylim = c(0, 1)) +  # Set axis limits without cutting off data
+          theme_minimal()
+      }
+      
+      # Create individual plots for each of the specified samples
+      plot1 <- create_heatmap(biosample_comb[1])
+      plot2 <- create_heatmap(paste(biosample_comb[1], biosample_comb[2], sep = "_"))
+      plot3 <- create_heatmap(biosample_comb[2])
+      
+      # Combine the plots into a single grid with a super title
+      combined_plot <- arrangeGrob(
+        plot1, plot2, plot3,
+        ncol = 3,
+        top = textGrob(motif, gp = gpar(fontsize = 16, fontface = "bold"))
+      )
+      
+      # Save the combined plot as an image
+      output_file <- file.path(
+        output_folder,
+        protein,
+        motif,
+        paste(motif, biosample_comb[1], biosample_comb[2], "combined_heatmap.png", sep = "_")
+      )
+      
+      ggsave(
+        filename = output_file,
+        plot = combined_plot,  # Use combined plot with title
+        width = 15, height = 5  # Adjust width and height as needed
+      )
+
+      
+      # Ensure that samples not in `group.colors` default to "grey"
+      df_state1 <- df_state1 %>%
+        mutate(color = ifelse(sample %in% names(group.colors), group.colors[sample], "grey"))
+      
+      # Define the output file path
+      output_file <- file.path(
+        output_folder,
+        protein,
+        motif,
+        paste(motif, biosample_comb[1], biosample_comb[2], "scatter_plot_all.png", sep = "_")
+      )
+      
+      # Create the plot
+      scatter_plot <- ggplot(df_state1, aes_string(x = fRead_col1, y = fRead_col2)) +
+        geom_point(aes(color = sample), size = 1, alpha = 0.6) +  # Map `sample` to the color legend
+        scale_color_manual(values = c(group.colors, grey = "grey")) +  # Use custom colors with grey as default
         labs(
-          title = paste(protein,motif,"Scatter Plot of fRead_", biosample_comb[1], " vs fRead_", biosample_comb[2]),
-          x = paste("fRead_", biosample_comb[1]),
-          y = paste("fRead_", biosample_comb[2])
+          title = motif,
+          x = fRead_col1,
+          y = fRead_col2,
+          color = "Sample"  # Legend title
         ) +
         theme_minimal()
       
+      # Save the plot as an image
+      ggsave(
+        filename = output_file,
+        plot = scatter_plot,  # Use scatter plot with custom color legend
+        width = 10, height = 8  # Adjust width and height as needed
+      )
       
+      # # Create the scatter plot
+      # ggplot(df_state1, aes_string(x = fRead_col1, y = fRead_col2, color = "sample")) +
+      #   geom_point() +
+      #   labs(
+      #     title = paste(protein,motif,"Scatter Plot of fRead_", biosample_comb[1], " vs fRead_", biosample_comb[2]),
+      #     x = paste("fRead_", biosample_comb[1]),
+      #     y = paste("fRead_", biosample_comb[2])
+      #   ) +
+      #   theme_minimal()
+      # 
+      # 
       # # Create the 2D histogram plot and build it to extract bin data
       # df_bins_plot <- ggplot(df_state1, aes_string(x = fRead_col1, y = fRead_col2)) +
       #   stat_bin2d(bins = 30)
@@ -292,49 +381,49 @@ for (protein in protein_folders) {
       #       zaxis = list(title = "Log(Frequency)", type = "log")
       #     )
       #   )
-      
-      # Ensure 'sample' is a factor or character in df_state1 before binning
-      df_state1 <- df_state1 %>%
-        mutate(sample = as.factor(sample))
-      
-      # Bin the data into a 2D histogram and count occurrences
-      df_bins_plot <- ggplot(df_state1, aes_string(x = fRead_col1, y = fRead_col2, fill = "sample")) +
-        stat_bin2d(bins = 30)
-      
-      # Plot using ggplot2 with custom colors
-      df_bins_plot <- ggplot(df_state1, aes_string(x = fRead_col1, y = fRead_col2, fill = "sample")) +
-        stat_bin2d(bins = 30) +
-        scale_fill_manual(values = group.colors, na.value = "grey50") +  # Use grey for undefined colors
-        labs(
-          title = "2D Density Plot with Custom Colors",
-          x = paste("fRead_", biosample_comb[1]),
-          y = paste("fRead_", biosample_comb[2])
-        ) +
-        theme_minimal()
-      
-      # Extract binned data
-      df_bins <- ggplot_build(df_bins_plot)$data[[1]]
-      df_3d <- df_bins %>%
-        select(x, y, count, fill) %>%
-        rename(z = count, sample = fill) %>%
-        mutate(sample = as.factor(sample))  # Ensure sample is a factor
-      
-      # Log transformation for z values
-      df_3d <- df_3d %>%
-        mutate(z = log10(z + 1))
-      
-      # Create the 3D plot with color by sample
-      plot_ly(data = df_3d, x = ~x, y = ~y, z = ~z, type = "mesh3d",
-              color = sample,
-              showscale = TRUE) %>%
-        layout(
-          title = "3D Histogram of fRead for Multiple Samples",
-          scene = list(
-            xaxis = list(title = paste("fRead_", biosample_comb[1])),
-            yaxis = list(title = paste("fRead_", biosample_comb[2])),
-            zaxis = list(title = "Log(Frequency)", type = "log")
-          )
-        )
+      # 
+      # # Ensure 'sample' is a factor or character in df_state1 before binning
+      # df_state1 <- df_state1 %>%
+      #   mutate(sample = as.factor(sample))
+      # 
+      # # Bin the data into a 2D histogram and count occurrences
+      # df_bins_plot <- ggplot(df_state1, aes_string(x = fRead_col1, y = fRead_col2, fill = "sample")) +
+      #   stat_bin2d(bins = 30)
+      # 
+      # # Plot using ggplot2 with custom colors
+      # df_bins_plot <- ggplot(df_state1, aes_string(x = fRead_col1, y = fRead_col2, fill = "sample")) +
+      #   stat_bin2d(bins = 30) +
+      #   scale_fill_manual(values = group.colors, na.value = "grey50") +  # Use grey for undefined colors
+      #   labs(
+      #     title = "2D Density Plot with Custom Colors",
+      #     x = paste("fRead_", biosample_comb[1]),
+      #     y = paste("fRead_", biosample_comb[2])
+      #   ) +
+      #   theme_minimal()
+      # 
+      # # Extract binned data
+      # df_bins <- ggplot_build(df_bins_plot)$data[[1]]
+      # df_3d <- df_bins %>%
+      #   select(x, y, count, fill) %>%
+      #   rename(z = count, sample = fill) %>%
+      #   mutate(sample = as.factor(sample))  # Ensure sample is a factor
+      # 
+      # # Log transformation for z values
+      # df_3d <- df_3d %>%
+      #   mutate(z = log10(z + 1))
+      # 
+      # # Create the 3D plot with color by sample
+      # plot_ly(data = df_3d, x = ~x, y = ~y, z = ~z, type = "mesh3d",
+      #         color = sample,
+      #         showscale = TRUE) %>%
+      #   layout(
+      #     title = "3D Histogram of fRead for Multiple Samples",
+      #     scene = list(
+      #       xaxis = list(title = paste("fRead_", biosample_comb[1])),
+      #       yaxis = list(title = paste("fRead_", biosample_comb[2])),
+      #       zaxis = list(title = "Log(Frequency)", type = "log")
+      #     )
+      #   )
       
       
       
@@ -576,4 +665,7 @@ ggsave(
   plot = combined_plot,  # Use combined plot with title
   width = 15, height = 5  # Adjust width and height as needed
 )
+
+################################################
+
 

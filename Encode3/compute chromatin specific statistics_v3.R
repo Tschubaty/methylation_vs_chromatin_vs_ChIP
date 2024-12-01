@@ -143,13 +143,14 @@ protein_files <- list.files(path = input_folder,pattern = "*.fimo_methylation_pe
 
 # Loop through each protein folder
 for (protein_file in protein_files[1:10]) {
+  # protein_file in protein_files[1:10]
   protein_name <- gsub(pattern = ".fimo_methylation_peaks.bed",replacement = "",x = basename(protein_file))  # Extract protein name
   df<- read.delim(header = FALSE,file = file.path(input_folder,protein_file),col.names = colnames_df)
   head(df)
   
   ChIP_files <- list.files(path = file.path(ChIP.seq_folder,protein_name),pattern = "*.bed")
-  for(ChIP_file in ChIP_files)
-  df_chip <- read.delim(file = 
+  # for(ChIP_file in ChIP_files)
+  # df_chip <- read.delim(file = 
   
   }
   
