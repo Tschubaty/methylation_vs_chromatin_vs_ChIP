@@ -331,6 +331,28 @@ df_long_Chromatin_State_Biosample_fRead <- readRDS(file = file.path(output_dir,
 df_long_Chromatin_State_Biosample_fRead$Chromatin_State <- factor(df_long_Chromatin_State_Biosample_fRead$Chromatin_State, levels =seq(1,18))
 #
 
+library(dplyr)
+
+# Summarize data with additional columns
+genome_summary_table_with_meth_data <- df_long_Chromatin_State_Biosample_fRead %>%
+  filter(!is.na(fRead)) %>% # Include only non-NA entries
+  group_by(Biosample) %>%
+  mutate(total_entries = n()) %>% # Total non-NA entries per biosample
+  group_by(Chromatin_State, Biosample) %>%
+  summarise(
+    total_entries = first(total_entries), # Consistent total non-NA entries across states
+    count_entries = n(), # Non-NA entries for the current state
+    mean_fRead = mean(fRead, na.rm = TRUE),
+    percentage_entries = count_entries / total_entries * 100
+  )
+
+# View the result
+print(genome_summary_table_with_meth_data)
+
+saveRDS(object = genome_summary_table_with_meth_data,
+        file = file.path(output_dir, "genome_summary_table_with_meth_data.RDS"))
+
+
 genome_summary_table <- readRDS(file = file.path(output_dir,"genome_summary_table.rds"))
 
 ################################### Figure 2a) ################################

@@ -31,13 +31,19 @@ setwd(this.dir)
 # Function to detach all loaded packages except base ones
 detachAllPackages <- function() {
   basic.packages <- c(
-    "package:stats", "package:graphics", "package:grDevices", 
-    "package:utils", "package:datasets", "package:methods", "package:base"
+    "package:stats",
+    "package:graphics",
+    "package:grDevices",
+    "package:utils",
+    "package:datasets",
+    "package:methods",
+    "package:base"
   )
   package.list <- search()[ifelse(unlist(gregexpr("package:", search())) == 1, TRUE, FALSE)]
   package.list <- setdiff(package.list, basic.packages)
   if (length(package.list) > 0) {
-    for (package in package.list) detach(package, character.only = TRUE)
+    for (package in package.list)
+      detach(package, character.only = TRUE)
   }
 }
 
@@ -50,6 +56,7 @@ library(readr)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
+library(rlang)
 
 #################################### Constants ###################################
 # Start time for the script
@@ -57,8 +64,8 @@ start_script <- Sys.time()
 
 # Define input and output directories
 input_folder <- file.path(
-  this.dir, 
-  "meme", 
+  this.dir,
+  "meme",
   "fimo_single_experiments_on_known_motif_and_peaks_add_methylation_v3"
 )
 output_folder <- file.path(this.dir, "permutation_test")
@@ -121,15 +128,16 @@ read_bed_file <- function(file_path) {
   return(df)
 }
 
+# List all protein folders, excluding irrelevant directories
+protein_folders <- list.dirs(path = input_folder,
+                             recursive = FALSE,
+                             full.names = FALSE)
+protein_folders <- protein_folders[!grepl("sbatch_scripts|log", protein_folders)]
+
 ################################# Main Process ##################################
 # Check if `summary_df.rds` exists; if not, generate the summary
 summary_df_path <- file.path(output_folder, "summary_df.rds")
 if (!file.exists(summary_df_path)) {
-  
-  # List all protein folders, excluding irrelevant directories
-  protein_folders <- list.dirs(path = input_folder, recursive = FALSE, full.names = FALSE)
-  protein_folders <- protein_folders[!grepl("sbatch_scripts|log", protein_folders)]
-  
   # Initialize an empty list to store summary results
   summary_list <- list()
   
@@ -160,9 +168,12 @@ if (!file.exists(summary_df_path)) {
       df_unique_peaks <- df %>% distinct(chr, start_peak, end_peak, .keep_all = TRUE)
       
       # Calculate categories based on unique peaks
-      n_peak_with_CpG <- sum(df_unique_peaks$start_motif != -1 & df_unique_peaks$start_cg != 0)
-      n_peak_no_CpG <- sum(df_unique_peaks$start_motif != -1 & df_unique_peaks$start_cg == 0)
-      n_peak_no_motif_no_CpG <- sum(df_unique_peaks$start_motif == -1 & df_unique_peaks$start_cg == 0)
+      n_peak_with_CpG <- sum(df_unique_peaks$start_motif != -1 &
+                               df_unique_peaks$start_cg != 0)
+      n_peak_no_CpG <- sum(df_unique_peaks$start_motif != -1 &
+                             df_unique_peaks$start_cg == 0)
+      n_peak_no_motif_no_CpG <- sum(df_unique_peaks$start_motif == -1 &
+                                      df_unique_peaks$start_cg == 0)
       n_peaks <- nrow(df_unique_peaks)
       
       # Append results to summary list
@@ -184,12 +195,14 @@ if (!file.exists(summary_df_path)) {
     }
     
     # Save combined data for the protein
-    saveRDS(object = df_protein, file = file.path(output_folder, protein, paste0(protein, ".rds")))
+    saveRDS(object = df_protein,
+            file = file.path(output_folder, protein, paste0(protein, ".rds")))
   }
   
   # Combine all summaries into a single data frame
   summary_df <- do.call(rbind, summary_list)
   summary_df$no_motif_no_CpG_ratio <- summary_df$n_peak_no_motif_no_CpG / summary_df$n_peaks
+  summary_df$n_motif <- (summary_df$n_peak_no_CpG +  summary_df$n_peak_with_CpG) / summary_df$n_peaks
   
   # Save the summary data frame
   saveRDS(object = summary_df, file = summary_df_path)
@@ -202,393 +215,395 @@ if (!file.exists(summary_df_path)) {
 
 ################################# End Script ####################################
 end_script <- Sys.time()
-print(paste("Script completed in", round(difftime(end_script, start_script, units = "mins"), 2), "minutes"))
+print(paste("Script completed in", round(
+  difftime(end_script, start_script, units = "mins"), 2
+), "minutes"))
 
-  
-  
-  
-  # # Plot the histogram
-  # histogram_plot <- ggplot(summary_df, aes(x = no_motif_no_CpG_ratio)) +
-  #   geom_histogram(
-  #     binwidth = 0.05,
-  #     fill = "#00BFC4",
-  #     color = "black",
-  #     alpha = 0.7
-  #   ) +
-  #   labs(title = "Distribution of No Motif No CpG Peaks Ratio", x = "Ratio of No Motif No CpG Peaks", y = "Count") +
-  #   theme_minimal()
-  # 
-  # # Save the absolute plot
-  # ggsave(
-  #   filename = file.path(output_folder, "histogram_plot_fractions.png"),
-  #   plot = histogram_plot,
-  #   width = 10,
-  #   height = 6
-  # )
-  # 
-  # # Loop over protein folders
-  # for (protein in protein_folders) {
-  #   # protein <- "CTCF"
-  #   print(protein)
-  #
-  #   # Create output directory for each protein if it doesn't exist
-  #   protein_output_dir <- file.path(output_folder, protein)
-  #   if (!dir.exists(protein_output_dir)) {
-  #     dir.create(protein_output_dir, recursive = TRUE)
-  #   }
-  #
-  #   # Filter the data for the specific protein
-  #
-  #   protein_data <- summary_df[summary_df$protein == protein, ]
-  #
-  #   # # Create the bar plot
-  #   # bar_plot <- ggplot(protein_data, aes(x = interaction(biosample, experiment_id, motif),
-  #   #                                      y = no_motif_no_CpG_ratio,
-  #   #                                      fill = biosample)) +
-  #   #   geom_bar(stat = "identity") +
-  #   #   labs(
-  #   #     title = paste("Ratio of Peaks with No Motif and No CpG for", protein),
-  #   #     x = "Biosample x Experiment ID",
-  #   #     y = "Ratio of No Motif No CpG Peaks"
-  #   #   ) +
-  #   #   scale_fill_manual(values = group.colors) +  # Use the custom biosample colors
-  #   #   theme_minimal() +
-  #   #   theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels for readability
-  #
-  #   # Print the plot
-  #   print(bar_plot)
-  #
-  #   ########### continue
-  #
-  #   # Now run the code
-  #   # summary_df_long <- summary_df %>%
-  #   #   mutate(matched_peaks = n_peaks - n_peaks_unmatched) %>%  # Calculate matched peaks
-  #   #   select(protein, biosample, experiment_id, motif, n_peaks, n_peaks_unmatched, matched_peaks) %>%
-  #   #   pivot_longer(cols = c(matched_peaks, n_peaks_unmatched),
-  #   #                names_to = "peak_type",
-  #   #                values_to = "peak_count")  # Reshape data to long format for stacked bars
-  #   #
-  #   # # Create a new variable that combines experiment_id and motif
-  #   # summary_df_long <- summary_df_long %>%
-  #   #   mutate(experiment_motif = paste(biosample,experiment_id, motif, sep = "_"))
-  #   #
-  #   #
-  #   # # Generate plot for absolute number of peaks
-  #   # p_absolute <- ggplot(data = summary_df_long[summary_df_long$protein == protein,],
-  #   #                      aes(x = experiment_motif, y = peak_count, fill = biosample, alpha = peak_type)) +
-  #   #   geom_bar(stat = "identity", position = "stack") +  # Stack matched and unmatched peaks
-  #   #   scale_alpha_manual(values = c(matched_peaks = 1, n_peaks_unmatched = 0.5)) +  # Different alpha for unmatched peaks
-  #   #   scale_fill_manual(values = group.colors) +  # Use the custom color palette
-  #   #   labs(title = paste("Number of Peaks per Biosample for", protein),
-  #   #        x = "Experiment ID and Motif",
-  #   #        y = "Number of Peaks") +
-  #   #   theme_minimal() +
-  #   #   theme(axis.text.x = element_text(angle = 90, hjust = 1))  # Rotate x-axis labels for readability
-  #   #
-  #   # # Save the absolute plot
-  #   # ggsave(filename = file.path(protein_output_dir, paste0(protein, "_absolute_peaks.png")),
-  #   #        plot = p_absolute, width = 10, height = 6)
-  #   #
-  #   # # Calculate percentage for each row in summary_df_long
-  #   # summary_df_long <- summary_df_long %>%
-  #   #   group_by(experiment_motif, biosample) %>%  # Group by experiment_motif and biosample
-  #   #   mutate(percentage = peak_count / sum(peak_count) * 100) %>%  # Calculate percentage
-  #   #   ungroup()
-  #   #
-  #   # # Generate plot for percentage of peaks
-  #   # p_percentage <- ggplot(data = summary_df_long[summary_df_long$protein == protein,],
-  #   #                        aes(x = experiment_motif, y = percentage, fill = biosample, alpha = peak_type)) +
-  #   #   geom_bar(stat = "identity", position = "stack") +  # Stack matched and unmatched peaks
-  #   #   scale_alpha_manual(values = c(matched_peaks = 1, n_peaks_unmatched = 0.5)) +  # Different alpha for unmatched peaks
-  #   #   scale_fill_manual(values = group.colors) +  # Use the custom color palette
-  #   #   labs(title = paste("Percentage of Peaks per Biosample for", protein),
-  #   #        x = "Experiment ID and Motif",
-  #   #        y = "Percentage of Peaks") +
-  #   #   theme_minimal() +
-  #   #   theme(axis.text.x = element_text(angle = 90, hjust = 1))  # Rotate x-axis labels for readability
-  #   #
-  #   # # Save the percentage plot
-  #   # ggsave(filename = file.path(protein_output_dir, paste0(protein, "_percentage_peaks.png")),
-  #   #        plot = p_percentage, width = 10, height = 6)
-  # }
-  
-  # # Add the three ratios as new columns in summary_df
-  # summary_df <- summary_df %>%
-  #   mutate(ratio_CpG_to_peaks = n_CpG / n_peaks,  # First ratio
-  #          ratio_CpG_to_matched_peaks = n_CpG / (n_peaks - n_peaks_unmatched),  # Second ratio
-  #          ratio_matched_peaks_to_total = (n_peaks - n_peaks_unmatched) / n_peaks)  # New ratio
-  #
-  # # Calculate the maximum value for each ratio column
-  # max_ratio1 <- max(summary_df$ratio_CpG_to_peaks, na.rm = TRUE)
-  # max_ratio2 <- max(summary_df$ratio_CpG_to_matched_peaks, na.rm = TRUE)
-  # max_ratio3 <- max(summary_df$ratio_matched_peaks_to_total, na.rm = TRUE)  # New max value
-  #
-  # # Plot histogram for the first ratio (n_CpG / n_peaks)
-  # p_histogram_ratio1 <- ggplot(summary_df, aes(x = ratio_CpG_to_peaks)) +
-  #   geom_histogram(binwidth = 0.05, alpha = 0.7, color = "black") +
-  #   labs(title = "Histogram of n_CpG / n_peaks",
-  #        x = "Ratio of CpG to Peaks",
-  #        y = "Frequency") +
-  #   scale_x_continuous(breaks = seq(0, ceiling(max_ratio1), by = 1),  # Major ticks at whole numbers
-  #                      minor_breaks = seq(0, ceiling(max_ratio1), by = 0.5)) +  # Minor ticks at 0.5 intervals
-  #   theme_minimal()
-  #
-  # # Plot histogram for the second ratio (n_CpG / (n_peaks - n_peaks_unmatched))
-  # p_histogram_ratio2 <- ggplot(summary_df, aes(x = ratio_CpG_to_matched_peaks)) +
-  #   geom_histogram(binwidth = 0.05, alpha = 0.7, color = "black") +
-  #   labs(title = "Histogram of n_CpG / (n_peaks - n_peaks_unmatched)",
-  #        x = "Ratio of CpG to Matched Peaks",
-  #        y = "Frequency") +
-  #   scale_x_continuous(breaks = seq(0, ceiling(max_ratio2), by = 1),  # Major ticks at whole numbers
-  #                      minor_breaks = seq(0, ceiling(max_ratio2), by = 0.5)) +  # Minor ticks at 0.5 intervals
-  #   theme_minimal()
-  #
-  # # Plot histogram for the new ratio ((n_peaks - n_peaks_unmatched) / n_peaks)
-  # p_histogram_ratio3 <- ggplot(summary_df, aes(x = ratio_matched_peaks_to_total)) +
-  #   geom_histogram(binwidth = 0.01, alpha = 0.7, color = "black") +
-  #   labs(title = "Histogram of Matched Peaks / Total Peaks",
-  #        x = "Ratio of Matched Peaks to Total Peaks",
-  #        y = "Frequency") +
-  #   scale_x_continuous(breaks = seq(0, 1, by = 0.1),  # Major ticks at whole numbers
-  #                      minor_breaks = seq(0, 1, by = 0.01)) +  # Minor ticks at 0.5 intervals
-  #   theme_minimal()
-  #
-  # # Display all three histograms
-  # print(p_histogram_ratio1)
-  # print(p_histogram_ratio2)
-  # print(p_histogram_ratio3)
-  #
-  #
-  # # Add the ratios and a new column that categorizes entries based on ratio_matched_peaks_to_total
-  # summary_df <- summary_df %>%
-  #   mutate(ratio_CpG_to_peaks = n_CpG / n_peaks,  # First ratio
-  #          ratio_CpG_to_matched_peaks = n_CpG / (n_peaks - n_peaks_unmatched),  # Second ratio
-  #          ratio_matched_peaks_to_total = (n_peaks - n_peaks_unmatched) / n_peaks,  # Third ratio
-  #          low_matched_ratio = ifelse(ratio_matched_peaks_to_total < 0.25, "< 0.25", ">= 0.25"))  # New category
-  #
-  # # Calculate the maximum value for each ratio column
-  # max_ratio1 <- max(summary_df$ratio_CpG_to_peaks, na.rm = TRUE)
-  # max_ratio2 <- max(summary_df$ratio_CpG_to_matched_peaks, na.rm = TRUE)
-  # max_ratio3 <- max(summary_df$ratio_matched_peaks_to_total, na.rm = TRUE)
-  #
-  # # Plot histogram for the first ratio (n_CpG / n_peaks) with stacked colors
-  # p_histogram_ratio1 <- ggplot(summary_df, aes(x = ratio_CpG_to_peaks, fill = low_matched_ratio)) +
-  #   geom_histogram(binwidth = 0.05, alpha = 0.7, color = "black", position = "stack") +
-  #   scale_fill_manual(values = c("< 0.25" = "red", ">= 0.25" = "blue")) +
-  #   labs(title = "Histogram of n_CpG / n_peaks",
-  #        x = "Ratio of CpG to Peaks",
-  #        y = "Frequency") +
-  #   scale_x_continuous(breaks = seq(0, ceiling(max_ratio1), by = 1),  # Major ticks at whole numbers
-  #                      minor_breaks = seq(0, ceiling(max_ratio1), by = 0.5)) +  # Minor ticks at 0.5 intervals
-  #   theme_minimal()
-  #
-  # # Plot histogram for the second ratio (n_CpG / (n_peaks - n_peaks_unmatched)) with stacked colors
-  # p_histogram_ratio2 <- ggplot(summary_df, aes(x = ratio_CpG_to_matched_peaks, fill = low_matched_ratio)) +
-  #   geom_histogram(binwidth = 0.05, alpha = 0.7, color = "black", position = "stack") +
-  #   scale_fill_manual(values = c("< 0.25" = "red", ">= 0.25" = "blue")) +
-  #   labs(title = "Histogram of n_CpG / (n_peaks - n_peaks_unmatched)",
-  #        x = "Ratio of CpG to Matched Peaks",
-  #        y = "Frequency") +
-  #   scale_x_continuous(breaks = seq(0, ceiling(max_ratio2), by = 1),  # Major ticks at whole numbers
-  #                      minor_breaks = seq(0, ceiling(max_ratio2), by = 0.5)) +  # Minor ticks at 0.5 intervals
-  #   theme_minimal()
-  #
-  # # Plot histogram for the new ratio ((n_peaks - n_peaks_unmatched) / n_peaks) with stacked colors
-  # p_histogram_ratio3 <- ggplot(summary_df, aes(x = ratio_matched_peaks_to_total, fill = low_matched_ratio)) +
-  #   geom_histogram(binwidth = 0.01, alpha = 0.7, color = "black", position = "stack") +
-  #   scale_fill_manual(values = c("< 0.25" = "red", ">= 0.25" = "blue")) +
-  #   labs(title = "Histogram of Matched Peaks / Total Peaks",
-  #        x = "Ratio of Matched Peaks to Total Peaks",
-  #        y = "Frequency") +
-  #   scale_x_continuous(breaks = seq(0, 1, by = 0.1),  # Major ticks at whole numbers
-  #                      minor_breaks = seq(0, 1, by = 0.01)) +  # Minor ticks at 0.5 intervals
-  #   theme_minimal()
-  #
-  # # Display all three histograms
-  # print(p_histogram_ratio1)
-  # print(p_histogram_ratio2)
-  # print(p_histogram_ratio3)
-  
-  ##########################################################
-  # library(ComplexUpset)
-  # library(ggplot2)
-  # library(reshape2)
-  #
-  # # Function to create intersection bar plot for a motif
-  # create_intersection_barplot <- function(cpg_list, experiment_biosample, motif, output_folder, protein) {
-  #
-  #   # Convert the CpG list into a binary matrix for ComplexUpset
-  #   binary_cpg_df <- fromList(cpg_list)  # List of CpG positions for each experiment
-  #
-  #   # Melt binary matrix to long format (for easier ggplot use)
-  #   binary_cpg_long <- melt(as.matrix(binary_cpg_df), varnames = c("CpG_Position", "Experiment"), value.name = "Presence")
-  #
-  #   # Filter only rows where the CpG is present
-  #   binary_cpg_long <- binary_cpg_long %>% filter(Presence == 1)
-  #
-  #   # Create a column representing the intersection combinations as a string (e.g., "Exp1_Exp2")
-  #   binary_cpg_long <- binary_cpg_long %>%
-  #     group_by(CpG_Position) %>%
-  #     summarize(Intersection = paste(Experiment, collapse = "_"))  # Collapses experiments involved in each CpG
-  #
-  #   # Count how many CpGs are in each intersection combination, split by experiment
-  #   intersection_counts <- binary_cpg_long %>%
-  #     separate(Intersection, into = paste0("Exp", 1:ncol(binary_cpg_df)), sep = "_", fill = "right", remove = FALSE) %>%
-  #     pivot_longer(cols = starts_with("Exp"), names_to = "experiment", values_to = "Experiment", values_drop_na = TRUE) %>%
-  #     group_by(Experiment, Intersection) %>%
-  #     summarise(CpG_Count = n())
-  #
-  #   # Add a biosample column based on experiment names
-  #   intersection_counts$biosample <- experiment_biosample$biosample[match(intersection_counts$Experiment, experiment_biosample$experiment_id)]
-  #
-  #   # Map colors for the intersections based on biosample and combinations
-  #   unique_intersections <- unique(intersection_counts$Intersection)
-  #   intersection_colors <- rainbow(length(unique_intersections))  # Customize this palette if needed
-  #
-  #   # Create the stacked bar plot for intersections
-  #   p <- ggplot(intersection_counts, aes(x = Experiment, y = CpG_Count, fill = Intersection)) +
-  #     geom_bar(stat = "identity", position = "stack") +
-  #     scale_fill_manual(values = intersection_colors) +  # Apply colors based on intersection
-  #     labs(title = paste("CpG Counts for Motif:", motif),
-  #          x = "Experiment",
-  #          y = "CpG Count") +
-  #     theme_minimal() +
-  #     theme(axis.text.x = element_text(angle = 90, hjust = 1))  # Rotate x-axis labels
-  #
-  #   # Correct the file path for saving the plot
-  #   output_file <- file.path(output_folder, protein, paste0("IntersectionBarplot_", motif, ".png"))
-  #   if (!dir.exists(file.path(output_folder, protein))) {
-  #     dir.create(file.path(output_folder, protein), recursive = TRUE)  # Ensure the directory exists
-  #   }
-  #
-  #   # Save the plot to a file
-  #   ggsave(output_file, plot = p, width = 10, height = 6)
-  #
-  #   print(paste("Bar plot saved for motif:", motif, "in protein folder:", protein))
-  # }
-  #
-  # # Iterate over each motif and create a bar plot for it
-  # for (motif in unique_motifs) {
-  #   df_motif <- df_protein %>% filter(motif == !!motif)
-  #
-  #   # Create the CpG list (same as for Venn diagram)
-  #   cpg_list <- list()
-  #   for (exp_id in unique(df_motif$experiment_id)) {
-  #     cpg_positions <- df_motif %>%
-  #       filter(experiment_id == !!exp_id) %>%
-  #       select(chr, start, end) %>%
-  #       mutate(position = paste(chr, start, end, sep = ":")) %>%
-  #       pull(position)
-  #     cpg_list[[exp_id]] <- unique(cpg_positions)
-  #   }
-  #
-  #   # Get biosample information for experiments
-  #   experiment_biosample <- df_motif %>%
-  #     select(experiment_id, biosample) %>%
-  #     distinct()
-  #
-  #   # Call the function to create the bar plot
-  #   create_intersection_barplot(cpg_list, experiment_biosample, motif, output_folder, protein)
-  # }
-  
-  # ############################################################################
-  # library(ComplexUpset)
-  # library(ggplot2)
-  # library(reshape2)
-  # library(colorspace)  # For lightening the colors
-  #
-  # # Function to create intersection bar plot for a motif with dynamic color scaling
-  # create_intersection_barplot <- function(cpg_list, experiment_biosample, motif, output_folder, protein, group_colors) {
-  #
-  #   # Convert the CpG list into a binary matrix for ComplexUpset
-  #   binary_cpg_df <- fromList(cpg_list)  # List of CpG positions for each experiment
-  #
-  #   # Melt binary matrix to long format (for easier ggplot use)
-  #   binary_cpg_long <- melt(as.matrix(binary_cpg_df), varnames = c("CpG_Position", "Experiment"), value.name = "Presence")
-  #
-  #   # Filter only rows where the CpG is present
-  #   binary_cpg_long <- binary_cpg_long %>% filter(Presence == 1)
-  #
-  #   # Create a column representing the intersection combinations as a string (e.g., "Exp1_Exp2")
-  #   binary_cpg_long <- binary_cpg_long %>%
-  #     group_by(CpG_Position) %>%
-  #     summarize(Intersection = paste(Experiment, collapse = "_"))  # Collapses experiments involved in each CpG
-  #
-  #   # Count how many CpGs are in each intersection combination, split by experiment
-  #   intersection_counts <- binary_cpg_long %>%
-  #     separate(Intersection, into = paste0("Exp", 1:ncol(binary_cpg_df)), sep = "_", fill = "right", remove = FALSE) %>%
-  #     pivot_longer(cols = starts_with("Exp"), names_to = "experiment", values_to = "Experiment", values_drop_na = TRUE) %>%
-  #     group_by(Experiment, Intersection) %>%
-  #     summarise(CpG_Count = n(), .groups = 'drop')
-  #
-  #   # Add a biosample column based on experiment names
-  #   intersection_counts$biosample <- experiment_biosample$biosample[match(intersection_counts$Experiment, experiment_biosample$experiment_id)]
-  #
-  #   # Determine whether each intersection involves multiple experiments or just one
-  #   intersection_counts <- intersection_counts %>%
-  #     group_by(Intersection) %>%
-  #     mutate(experiment_count = n_distinct(Experiment)) %>%  # Count how many experiments are involved in each intersection
-  #     ungroup()
-  #
-  #   # Assign colors based on biosample and experiment count (light for single, dark for multiple)
-  #   intersection_counts$color <- sapply(1:nrow(intersection_counts), function(i) {
-  #     base_color <- group_colors[intersection_counts$biosample[i]]
-  #     if (intersection_counts$experiment_count[i] > 1) {
-  #       base_color  # Darker version for multiple experiments
-  #     } else {
-  #       lighten(base_color, amount = 0.5)  # Lighter version for single experiments using colorspace::lighten()
-  #     }
-  #   })
-  #
-  #   # Create the stacked bar plot for intersections
-  #   p <- ggplot(intersection_counts, aes(x = Experiment, y = CpG_Count, fill = Intersection)) +
-  #     geom_bar(stat = "identity", position = "stack", aes(fill = color)) +
-  #     scale_fill_identity() +  # Use the assigned colors
-  #     labs(title = paste("CpG Counts for Motif:", motif),
-  #          x = "Experiment",
-  #          y = "CpG Count") +
-  #     theme_minimal() +
-  #     theme(axis.text.x = element_text(angle = 90, hjust = 1))  # Rotate x-axis labels
-  #
-  #   # Correct the file path for saving the plot
-  #   output_file <- file.path(output_folder, protein, paste0("IntersectionBarplot_", motif, ".png"))
-  #   if (!dir.exists(file.path(output_folder, protein))) {
-  #     dir.create(file.path(output_folder, protein), recursive = TRUE)  # Ensure the directory exists
-  #   }
-  #
-  #   # Save the plot to a file
-  #   ggsave(output_file, plot = p, width = 10, height = 6)
-  #
-  #   print(paste("Bar plot saved for motif:", motif, "in protein folder:", protein))
-  # }
-  #
-  # # Iterate over each motif and create a bar plot for it
-  # for (motif in unique_motifs) {
-  #   df_motif <- df_protein %>% filter(motif == !!motif)
-  #
-  #   # Create the CpG list (same as for Venn diagram)
-  #   cpg_list <- list()
-  #   for (exp_id in unique(df_motif$experiment_id)) {
-  #     cpg_positions <- df_motif %>%
-  #       filter(experiment_id == !!exp_id) %>%
-  #       select(chr, start, end) %>%
-  #       mutate(position = paste(chr, start, end, sep = ":")) %>%
-  #       pull(position)
-  #     cpg_list[[exp_id]] <- unique(cpg_positions)
-  #   }
-  #
-  #   # Get biosample information for experiments
-  #   experiment_biosample <- df_motif %>%
-  #     select(experiment_id, biosample) %>%
-  #     distinct()
-  #
-  #   # Call the function to create the bar plot
-  #   create_intersection_barplot(cpg_list, experiment_biosample, motif, output_folder, protein, group.colors)
-  # }
+
+
+
+# # Plot the histogram
+# histogram_plot <- ggplot(summary_df, aes(x = no_motif_no_CpG_ratio)) +
+#   geom_histogram(
+#     binwidth = 0.05,
+#     fill = "#00BFC4",
+#     color = "black",
+#     alpha = 0.7
+#   ) +
+#   labs(title = "Distribution of No Motif No CpG Peaks Ratio", x = "Ratio of No Motif No CpG Peaks", y = "Count") +
+#   theme_minimal()
+#
+# # Save the absolute plot
+# ggsave(
+#   filename = file.path(output_folder, "histogram_plot_fractions.png"),
+#   plot = histogram_plot,
+#   width = 10,
+#   height = 6
+# )
+#
+# # Loop over protein folders
+# for (protein in protein_folders) {
+#   # protein <- "CTCF"
+#   print(protein)
+#
+#   # Create output directory for each protein if it doesn't exist
+#   protein_output_dir <- file.path(output_folder, protein)
+#   if (!dir.exists(protein_output_dir)) {
+#     dir.create(protein_output_dir, recursive = TRUE)
+#   }
+#
+#   # Filter the data for the specific protein
+#
+#   protein_data <- summary_df[summary_df$protein == protein, ]
+#
+#   # # Create the bar plot
+#   # bar_plot <- ggplot(protein_data, aes(x = interaction(biosample, experiment_id, motif),
+#   #                                      y = no_motif_no_CpG_ratio,
+#   #                                      fill = biosample)) +
+#   #   geom_bar(stat = "identity") +
+#   #   labs(
+#   #     title = paste("Ratio of Peaks with No Motif and No CpG for", protein),
+#   #     x = "Biosample x Experiment ID",
+#   #     y = "Ratio of No Motif No CpG Peaks"
+#   #   ) +
+#   #   scale_fill_manual(values = group.colors) +  # Use the custom biosample colors
+#   #   theme_minimal() +
+#   #   theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels for readability
+#
+#   # Print the plot
+#   print(bar_plot)
+#
+#   ########### continue
+#
+#   # Now run the code
+#   # summary_df_long <- summary_df %>%
+#   #   mutate(matched_peaks = n_peaks - n_peaks_unmatched) %>%  # Calculate matched peaks
+#   #   select(protein, biosample, experiment_id, motif, n_peaks, n_peaks_unmatched, matched_peaks) %>%
+#   #   pivot_longer(cols = c(matched_peaks, n_peaks_unmatched),
+#   #                names_to = "peak_type",
+#   #                values_to = "peak_count")  # Reshape data to long format for stacked bars
+#   #
+#   # # Create a new variable that combines experiment_id and motif
+#   # summary_df_long <- summary_df_long %>%
+#   #   mutate(experiment_motif = paste(biosample,experiment_id, motif, sep = "_"))
+#   #
+#   #
+#   # # Generate plot for absolute number of peaks
+#   # p_absolute <- ggplot(data = summary_df_long[summary_df_long$protein == protein,],
+#   #                      aes(x = experiment_motif, y = peak_count, fill = biosample, alpha = peak_type)) +
+#   #   geom_bar(stat = "identity", position = "stack") +  # Stack matched and unmatched peaks
+#   #   scale_alpha_manual(values = c(matched_peaks = 1, n_peaks_unmatched = 0.5)) +  # Different alpha for unmatched peaks
+#   #   scale_fill_manual(values = group.colors) +  # Use the custom color palette
+#   #   labs(title = paste("Number of Peaks per Biosample for", protein),
+#   #        x = "Experiment ID and Motif",
+#   #        y = "Number of Peaks") +
+#   #   theme_minimal() +
+#   #   theme(axis.text.x = element_text(angle = 90, hjust = 1))  # Rotate x-axis labels for readability
+#   #
+#   # # Save the absolute plot
+#   # ggsave(filename = file.path(protein_output_dir, paste0(protein, "_absolute_peaks.png")),
+#   #        plot = p_absolute, width = 10, height = 6)
+#   #
+#   # # Calculate percentage for each row in summary_df_long
+#   # summary_df_long <- summary_df_long %>%
+#   #   group_by(experiment_motif, biosample) %>%  # Group by experiment_motif and biosample
+#   #   mutate(percentage = peak_count / sum(peak_count) * 100) %>%  # Calculate percentage
+#   #   ungroup()
+#   #
+#   # # Generate plot for percentage of peaks
+#   # p_percentage <- ggplot(data = summary_df_long[summary_df_long$protein == protein,],
+#   #                        aes(x = experiment_motif, y = percentage, fill = biosample, alpha = peak_type)) +
+#   #   geom_bar(stat = "identity", position = "stack") +  # Stack matched and unmatched peaks
+#   #   scale_alpha_manual(values = c(matched_peaks = 1, n_peaks_unmatched = 0.5)) +  # Different alpha for unmatched peaks
+#   #   scale_fill_manual(values = group.colors) +  # Use the custom color palette
+#   #   labs(title = paste("Percentage of Peaks per Biosample for", protein),
+#   #        x = "Experiment ID and Motif",
+#   #        y = "Percentage of Peaks") +
+#   #   theme_minimal() +
+#   #   theme(axis.text.x = element_text(angle = 90, hjust = 1))  # Rotate x-axis labels for readability
+#   #
+#   # # Save the percentage plot
+#   # ggsave(filename = file.path(protein_output_dir, paste0(protein, "_percentage_peaks.png")),
+#   #        plot = p_percentage, width = 10, height = 6)
+# }
+
+# # Add the three ratios as new columns in summary_df
+# summary_df <- summary_df %>%
+#   mutate(ratio_CpG_to_peaks = n_CpG / n_peaks,  # First ratio
+#          ratio_CpG_to_matched_peaks = n_CpG / (n_peaks - n_peaks_unmatched),  # Second ratio
+#          ratio_matched_peaks_to_total = (n_peaks - n_peaks_unmatched) / n_peaks)  # New ratio
+#
+# # Calculate the maximum value for each ratio column
+# max_ratio1 <- max(summary_df$ratio_CpG_to_peaks, na.rm = TRUE)
+# max_ratio2 <- max(summary_df$ratio_CpG_to_matched_peaks, na.rm = TRUE)
+# max_ratio3 <- max(summary_df$ratio_matched_peaks_to_total, na.rm = TRUE)  # New max value
+#
+# # Plot histogram for the first ratio (n_CpG / n_peaks)
+# p_histogram_ratio1 <- ggplot(summary_df, aes(x = ratio_CpG_to_peaks)) +
+#   geom_histogram(binwidth = 0.05, alpha = 0.7, color = "black") +
+#   labs(title = "Histogram of n_CpG / n_peaks",
+#        x = "Ratio of CpG to Peaks",
+#        y = "Frequency") +
+#   scale_x_continuous(breaks = seq(0, ceiling(max_ratio1), by = 1),  # Major ticks at whole numbers
+#                      minor_breaks = seq(0, ceiling(max_ratio1), by = 0.5)) +  # Minor ticks at 0.5 intervals
+#   theme_minimal()
+#
+# # Plot histogram for the second ratio (n_CpG / (n_peaks - n_peaks_unmatched))
+# p_histogram_ratio2 <- ggplot(summary_df, aes(x = ratio_CpG_to_matched_peaks)) +
+#   geom_histogram(binwidth = 0.05, alpha = 0.7, color = "black") +
+#   labs(title = "Histogram of n_CpG / (n_peaks - n_peaks_unmatched)",
+#        x = "Ratio of CpG to Matched Peaks",
+#        y = "Frequency") +
+#   scale_x_continuous(breaks = seq(0, ceiling(max_ratio2), by = 1),  # Major ticks at whole numbers
+#                      minor_breaks = seq(0, ceiling(max_ratio2), by = 0.5)) +  # Minor ticks at 0.5 intervals
+#   theme_minimal()
+#
+# # Plot histogram for the new ratio ((n_peaks - n_peaks_unmatched) / n_peaks)
+# p_histogram_ratio3 <- ggplot(summary_df, aes(x = ratio_matched_peaks_to_total)) +
+#   geom_histogram(binwidth = 0.01, alpha = 0.7, color = "black") +
+#   labs(title = "Histogram of Matched Peaks / Total Peaks",
+#        x = "Ratio of Matched Peaks to Total Peaks",
+#        y = "Frequency") +
+#   scale_x_continuous(breaks = seq(0, 1, by = 0.1),  # Major ticks at whole numbers
+#                      minor_breaks = seq(0, 1, by = 0.01)) +  # Minor ticks at 0.5 intervals
+#   theme_minimal()
+#
+# # Display all three histograms
+# print(p_histogram_ratio1)
+# print(p_histogram_ratio2)
+# print(p_histogram_ratio3)
+#
+#
+# # Add the ratios and a new column that categorizes entries based on ratio_matched_peaks_to_total
+# summary_df <- summary_df %>%
+#   mutate(ratio_CpG_to_peaks = n_CpG / n_peaks,  # First ratio
+#          ratio_CpG_to_matched_peaks = n_CpG / (n_peaks - n_peaks_unmatched),  # Second ratio
+#          ratio_matched_peaks_to_total = (n_peaks - n_peaks_unmatched) / n_peaks,  # Third ratio
+#          low_matched_ratio = ifelse(ratio_matched_peaks_to_total < 0.25, "< 0.25", ">= 0.25"))  # New category
+#
+# # Calculate the maximum value for each ratio column
+# max_ratio1 <- max(summary_df$ratio_CpG_to_peaks, na.rm = TRUE)
+# max_ratio2 <- max(summary_df$ratio_CpG_to_matched_peaks, na.rm = TRUE)
+# max_ratio3 <- max(summary_df$ratio_matched_peaks_to_total, na.rm = TRUE)
+#
+# # Plot histogram for the first ratio (n_CpG / n_peaks) with stacked colors
+# p_histogram_ratio1 <- ggplot(summary_df, aes(x = ratio_CpG_to_peaks, fill = low_matched_ratio)) +
+#   geom_histogram(binwidth = 0.05, alpha = 0.7, color = "black", position = "stack") +
+#   scale_fill_manual(values = c("< 0.25" = "red", ">= 0.25" = "blue")) +
+#   labs(title = "Histogram of n_CpG / n_peaks",
+#        x = "Ratio of CpG to Peaks",
+#        y = "Frequency") +
+#   scale_x_continuous(breaks = seq(0, ceiling(max_ratio1), by = 1),  # Major ticks at whole numbers
+#                      minor_breaks = seq(0, ceiling(max_ratio1), by = 0.5)) +  # Minor ticks at 0.5 intervals
+#   theme_minimal()
+#
+# # Plot histogram for the second ratio (n_CpG / (n_peaks - n_peaks_unmatched)) with stacked colors
+# p_histogram_ratio2 <- ggplot(summary_df, aes(x = ratio_CpG_to_matched_peaks, fill = low_matched_ratio)) +
+#   geom_histogram(binwidth = 0.05, alpha = 0.7, color = "black", position = "stack") +
+#   scale_fill_manual(values = c("< 0.25" = "red", ">= 0.25" = "blue")) +
+#   labs(title = "Histogram of n_CpG / (n_peaks - n_peaks_unmatched)",
+#        x = "Ratio of CpG to Matched Peaks",
+#        y = "Frequency") +
+#   scale_x_continuous(breaks = seq(0, ceiling(max_ratio2), by = 1),  # Major ticks at whole numbers
+#                      minor_breaks = seq(0, ceiling(max_ratio2), by = 0.5)) +  # Minor ticks at 0.5 intervals
+#   theme_minimal()
+#
+# # Plot histogram for the new ratio ((n_peaks - n_peaks_unmatched) / n_peaks) with stacked colors
+# p_histogram_ratio3 <- ggplot(summary_df, aes(x = ratio_matched_peaks_to_total, fill = low_matched_ratio)) +
+#   geom_histogram(binwidth = 0.01, alpha = 0.7, color = "black", position = "stack") +
+#   scale_fill_manual(values = c("< 0.25" = "red", ">= 0.25" = "blue")) +
+#   labs(title = "Histogram of Matched Peaks / Total Peaks",
+#        x = "Ratio of Matched Peaks to Total Peaks",
+#        y = "Frequency") +
+#   scale_x_continuous(breaks = seq(0, 1, by = 0.1),  # Major ticks at whole numbers
+#                      minor_breaks = seq(0, 1, by = 0.01)) +  # Minor ticks at 0.5 intervals
+#   theme_minimal()
+#
+# # Display all three histograms
+# print(p_histogram_ratio1)
+# print(p_histogram_ratio2)
+# print(p_histogram_ratio3)
+
+##########################################################
+# library(ComplexUpset)
+# library(ggplot2)
+# library(reshape2)
+#
+# # Function to create intersection bar plot for a motif
+# create_intersection_barplot <- function(cpg_list, experiment_biosample, motif, output_folder, protein) {
+#
+#   # Convert the CpG list into a binary matrix for ComplexUpset
+#   binary_cpg_df <- fromList(cpg_list)  # List of CpG positions for each experiment
+#
+#   # Melt binary matrix to long format (for easier ggplot use)
+#   binary_cpg_long <- melt(as.matrix(binary_cpg_df), varnames = c("CpG_Position", "Experiment"), value.name = "Presence")
+#
+#   # Filter only rows where the CpG is present
+#   binary_cpg_long <- binary_cpg_long %>% filter(Presence == 1)
+#
+#   # Create a column representing the intersection combinations as a string (e.g., "Exp1_Exp2")
+#   binary_cpg_long <- binary_cpg_long %>%
+#     group_by(CpG_Position) %>%
+#     summarize(Intersection = paste(Experiment, collapse = "_"))  # Collapses experiments involved in each CpG
+#
+#   # Count how many CpGs are in each intersection combination, split by experiment
+#   intersection_counts <- binary_cpg_long %>%
+#     separate(Intersection, into = paste0("Exp", 1:ncol(binary_cpg_df)), sep = "_", fill = "right", remove = FALSE) %>%
+#     pivot_longer(cols = starts_with("Exp"), names_to = "experiment", values_to = "Experiment", values_drop_na = TRUE) %>%
+#     group_by(Experiment, Intersection) %>%
+#     summarise(CpG_Count = n())
+#
+#   # Add a biosample column based on experiment names
+#   intersection_counts$biosample <- experiment_biosample$biosample[match(intersection_counts$Experiment, experiment_biosample$experiment_id)]
+#
+#   # Map colors for the intersections based on biosample and combinations
+#   unique_intersections <- unique(intersection_counts$Intersection)
+#   intersection_colors <- rainbow(length(unique_intersections))  # Customize this palette if needed
+#
+#   # Create the stacked bar plot for intersections
+#   p <- ggplot(intersection_counts, aes(x = Experiment, y = CpG_Count, fill = Intersection)) +
+#     geom_bar(stat = "identity", position = "stack") +
+#     scale_fill_manual(values = intersection_colors) +  # Apply colors based on intersection
+#     labs(title = paste("CpG Counts for Motif:", motif),
+#          x = "Experiment",
+#          y = "CpG Count") +
+#     theme_minimal() +
+#     theme(axis.text.x = element_text(angle = 90, hjust = 1))  # Rotate x-axis labels
+#
+#   # Correct the file path for saving the plot
+#   output_file <- file.path(output_folder, protein, paste0("IntersectionBarplot_", motif, ".png"))
+#   if (!dir.exists(file.path(output_folder, protein))) {
+#     dir.create(file.path(output_folder, protein), recursive = TRUE)  # Ensure the directory exists
+#   }
+#
+#   # Save the plot to a file
+#   ggsave(output_file, plot = p, width = 10, height = 6)
+#
+#   print(paste("Bar plot saved for motif:", motif, "in protein folder:", protein))
+# }
+#
+# # Iterate over each motif and create a bar plot for it
+# for (motif in unique_motifs) {
+#   df_motif <- df_protein %>% filter(motif == !!motif)
+#
+#   # Create the CpG list (same as for Venn diagram)
+#   cpg_list <- list()
+#   for (exp_id in unique(df_motif$experiment_id)) {
+#     cpg_positions <- df_motif %>%
+#       filter(experiment_id == !!exp_id) %>%
+#       select(chr, start, end) %>%
+#       mutate(position = paste(chr, start, end, sep = ":")) %>%
+#       pull(position)
+#     cpg_list[[exp_id]] <- unique(cpg_positions)
+#   }
+#
+#   # Get biosample information for experiments
+#   experiment_biosample <- df_motif %>%
+#     select(experiment_id, biosample) %>%
+#     distinct()
+#
+#   # Call the function to create the bar plot
+#   create_intersection_barplot(cpg_list, experiment_biosample, motif, output_folder, protein)
+# }
+
+# ############################################################################
+# library(ComplexUpset)
+# library(ggplot2)
+# library(reshape2)
+# library(colorspace)  # For lightening the colors
+#
+# # Function to create intersection bar plot for a motif with dynamic color scaling
+# create_intersection_barplot <- function(cpg_list, experiment_biosample, motif, output_folder, protein, group_colors) {
+#
+#   # Convert the CpG list into a binary matrix for ComplexUpset
+#   binary_cpg_df <- fromList(cpg_list)  # List of CpG positions for each experiment
+#
+#   # Melt binary matrix to long format (for easier ggplot use)
+#   binary_cpg_long <- melt(as.matrix(binary_cpg_df), varnames = c("CpG_Position", "Experiment"), value.name = "Presence")
+#
+#   # Filter only rows where the CpG is present
+#   binary_cpg_long <- binary_cpg_long %>% filter(Presence == 1)
+#
+#   # Create a column representing the intersection combinations as a string (e.g., "Exp1_Exp2")
+#   binary_cpg_long <- binary_cpg_long %>%
+#     group_by(CpG_Position) %>%
+#     summarize(Intersection = paste(Experiment, collapse = "_"))  # Collapses experiments involved in each CpG
+#
+#   # Count how many CpGs are in each intersection combination, split by experiment
+#   intersection_counts <- binary_cpg_long %>%
+#     separate(Intersection, into = paste0("Exp", 1:ncol(binary_cpg_df)), sep = "_", fill = "right", remove = FALSE) %>%
+#     pivot_longer(cols = starts_with("Exp"), names_to = "experiment", values_to = "Experiment", values_drop_na = TRUE) %>%
+#     group_by(Experiment, Intersection) %>%
+#     summarise(CpG_Count = n(), .groups = 'drop')
+#
+#   # Add a biosample column based on experiment names
+#   intersection_counts$biosample <- experiment_biosample$biosample[match(intersection_counts$Experiment, experiment_biosample$experiment_id)]
+#
+#   # Determine whether each intersection involves multiple experiments or just one
+#   intersection_counts <- intersection_counts %>%
+#     group_by(Intersection) %>%
+#     mutate(experiment_count = n_distinct(Experiment)) %>%  # Count how many experiments are involved in each intersection
+#     ungroup()
+#
+#   # Assign colors based on biosample and experiment count (light for single, dark for multiple)
+#   intersection_counts$color <- sapply(1:nrow(intersection_counts), function(i) {
+#     base_color <- group_colors[intersection_counts$biosample[i]]
+#     if (intersection_counts$experiment_count[i] > 1) {
+#       base_color  # Darker version for multiple experiments
+#     } else {
+#       lighten(base_color, amount = 0.5)  # Lighter version for single experiments using colorspace::lighten()
+#     }
+#   })
+#
+#   # Create the stacked bar plot for intersections
+#   p <- ggplot(intersection_counts, aes(x = Experiment, y = CpG_Count, fill = Intersection)) +
+#     geom_bar(stat = "identity", position = "stack", aes(fill = color)) +
+#     scale_fill_identity() +  # Use the assigned colors
+#     labs(title = paste("CpG Counts for Motif:", motif),
+#          x = "Experiment",
+#          y = "CpG Count") +
+#     theme_minimal() +
+#     theme(axis.text.x = element_text(angle = 90, hjust = 1))  # Rotate x-axis labels
+#
+#   # Correct the file path for saving the plot
+#   output_file <- file.path(output_folder, protein, paste0("IntersectionBarplot_", motif, ".png"))
+#   if (!dir.exists(file.path(output_folder, protein))) {
+#     dir.create(file.path(output_folder, protein), recursive = TRUE)  # Ensure the directory exists
+#   }
+#
+#   # Save the plot to a file
+#   ggsave(output_file, plot = p, width = 10, height = 6)
+#
+#   print(paste("Bar plot saved for motif:", motif, "in protein folder:", protein))
+# }
+#
+# # Iterate over each motif and create a bar plot for it
+# for (motif in unique_motifs) {
+#   df_motif <- df_protein %>% filter(motif == !!motif)
+#
+#   # Create the CpG list (same as for Venn diagram)
+#   cpg_list <- list()
+#   for (exp_id in unique(df_motif$experiment_id)) {
+#     cpg_positions <- df_motif %>%
+#       filter(experiment_id == !!exp_id) %>%
+#       select(chr, start, end) %>%
+#       mutate(position = paste(chr, start, end, sep = ":")) %>%
+#       pull(position)
+#     cpg_list[[exp_id]] <- unique(cpg_positions)
+#   }
+#
+#   # Get biosample information for experiments
+#   experiment_biosample <- df_motif %>%
+#     select(experiment_id, biosample) %>%
+#     distinct()
+#
+#   # Call the function to create the bar plot
+#   create_intersection_barplot(cpg_list, experiment_biosample, motif, output_folder, protein, group.colors)
+# }
 #}
- 
-########################## copy data oif pairs of sampples ##################### 
-  
+
+########################## copy data oif pairs of sampples #####################
+
 if (!exists("summary_df")) {
   summary_df <- readRDS(file = file.path(output_folder, "summary_df.rds"))
   message("Loaded summary_df from file.")
@@ -606,7 +621,7 @@ filtered_summary_df <- summary_df %>%
 
 
 # Loop over protein folders
-for(protein in unique(summary_df$protein)) {
+for (protein in unique(summary_df$protein)) {
   # protein <- "CTCF"
   print(protein)
   
@@ -633,6 +648,22 @@ for(protein in unique(summary_df$protein)) {
     # Loop through each combination of two biosamples
     for (biosample_comb in biosample_combinations) {
       print(biosample_comb)
+      
+      merge_df_file_name <- file.path(
+        output_folder,
+        protein,
+        paste(
+          unlist(biosample_comb)[1],
+          unlist(biosample_comb)[2],
+          protein,
+          motif,
+          "best_comparison_all_data_points.rds",
+          sep = "_"
+        )
+      )
+      if (!exists(merge_df_file_name)) {
+        next
+      }
       
       # Read the BED file
       df1 <- read_bed_file(file_path = file.path(
@@ -780,7 +811,8 @@ for(protein in unique(summary_df$protein)) {
           paste0("fRead_", biosample_comb[1]),
           paste0("Chromatin_State_", biosample_comb[2]),
           paste0("fRead_", biosample_comb[2])
-        ),  #      suffix = c(paste0("_",biosample_comb[1]), paste0("_",biosample_comb[1]))
+        ),
+        #      suffix = c(paste0("_",biosample_comb[1]), paste0("_",biosample_comb[1]))
       )
       
       # Combine the relevant fields (sample, experiment, etc.)
@@ -790,20 +822,16 @@ for(protein in unique(summary_df$protein)) {
           sample = case_when(
             !is.na(sample.x) &
               !is.na(sample.y) ~ paste0(sample.x, "_", sample.y),
-            # Both are present
-            !is.na(sample.x) ~ sample.x,
-            # Only sample.x is present
-            !is.na(sample.y) ~ sample.y                                             # Only sample.y is present
+            # Both are present!is.na(sample.x) ~ sample.x,
+            # Only sample.x is present!is.na(sample.y) ~ sample.y                                             # Only sample.y is present
           ),
           
           # Combine experiments: if both are present, concatenate them; if only one is present, keep the non-NA value
           experiment = case_when(
             !is.na(experiment.x) &
               !is.na(experiment.y) ~ paste0(experiment.x, "_", experiment.y),
-            # Both are present
-            !is.na(experiment.x) ~ experiment.x,
-            # Only experiment.x is present
-            !is.na(experiment.y) ~ experiment.y                                                    # Only experiment.y is present
+            # Both are present!is.na(experiment.x) ~ experiment.x,
+            # Only experiment.x is present!is.na(experiment.y) ~ experiment.y                                                    # Only experiment.y is present
           )
         ) %>%
         # Select the final set of relevant columns
@@ -824,25 +852,14 @@ for(protein in unique(summary_df$protein)) {
       # Check the structure of the cleaned merged data
       #str(merged_df)
       
-      saveRDS(object = merged_df,
-              file =  file.path(
-                output_folder,
-                protein,
-                paste(
-                  unlist(biosample_comb)[1],
-                  unlist(biosample_comb)[2],
-                  protein,
-                  motif,
-                  "best_comparison_all_data_points.rds",
-                  sep = "_"
-                )
-              ))
+      saveRDS(object = merged_df, file =  merge_df_file_name)
       
     }
   }
   
 }
 
+############################## calculate statistric #############################
 
 # Function to calculate S_statistic for a given data frame
 calculate_S_statistic <- function(df, biosample_comb) {
@@ -873,7 +890,7 @@ start <- which("NR3C1" == protein_folders) - 1
 stop <- which("NR3C1" == protein_folders) + 1
 # [start:stop]
 # Loop over protein folders
-for (protein in protein_folders[1:2]) {
+for (protein in protein_folders) {
   # [1:1]
   # protein <- "CTCF"
   print(protein)
@@ -968,9 +985,15 @@ for (protein in protein_folders[1:2]) {
             experiment_ids = df_complete$experiment[which.max(nchar(df_complete$experiment))],
             motif = motif,
             data_set = data_set,
-            n_1 = as.numeric(ifelse(!is.na(sample_counts[biosample_comb[1]]), sample_counts[biosample_comb[1]], 0)),
-            n_2 = as.numeric(ifelse(!is.na(sample_counts[biosample_comb[2]]), sample_counts[biosample_comb[2]], 0)),
-            n_both = as.numeric(ifelse(!is.na(sample_counts[biosample_both]), sample_counts[biosample_both], 0)),
+            n_1 = as.numeric(ifelse(
+              !is.na(sample_counts[biosample_comb[1]]), sample_counts[biosample_comb[1]], 0
+            )),
+            n_2 = as.numeric(ifelse(
+              !is.na(sample_counts[biosample_comb[2]]), sample_counts[biosample_comb[2]], 0
+            )),
+            n_both = as.numeric(ifelse(
+              !is.na(sample_counts[biosample_both]), sample_counts[biosample_both], 0
+            )),
             p_value_S_bigger = NA,
             p_value_S_smaller = NA,
             observed_S_statistic = NA
@@ -1000,7 +1023,7 @@ for (protein in protein_folders[1:2]) {
           print(paste("skippede", data_set, ":", "no 3 lable categories"))
           next
         }
-
+        
         
         # Calculate the observed S statistic
         observed_S_statistic <- calculate_S_statistic(current_df, biosample_comb)
@@ -1180,12 +1203,12 @@ summary_test <- do.call(rbind, summary_test)
 # Remove row names explicitly
 rownames(summary_test) <- NULL
 saveRDS(object = summary_test,
-        file = file.path(output_folder, "summary_test.rds"))
+        file = file.path(output_folder, "summary_test_100k.rds"))
 # summary_test[ !is.na(summary_test$p_value_S_smaller_state1) & (1/10000 > summary_test$p_value_S_smaller_state1 | 1/10000 > summary_test$p_value_S_bigger_state1),]
 
 
 
-################## chat gpt temp ###########################################
+################## new versiomstrtisfied stat  ###########################################
 
 # Function to calculate S_statistic for a given data frame
 calculate_S_statistic <- function(df, biosample_comb) {
@@ -1210,13 +1233,17 @@ cl <- makeCluster(num_cores)
 registerDoParallel(cl)
 
 stratified_test <- list()
-n_permutations <- 10000
+n_permutations <- 100000
 
-# start <- which("CTCF" == protein_folders) - 1
-# stop <- which("CTCF" == protein_folders) + 1
+start <- 1 #which("NR3C1" == protein_folders) -1
+stop <- #start +1
+  stop <- length(protein_folders)
 
 # Loop over protein folders
-for (protein in protein_folders) { # [start:stop]
+for (protein in protein_folders[start:stop]) {
+  # [start:stop]
+  # debug protein <- "CTCF"
+  # debug protein <- protein_folders[1]
   print(protein)
   
   protein_plot_list <- list()
@@ -1227,6 +1254,8 @@ for (protein in protein_folders) { # [start:stop]
   protein_output_dir <- file.path(output_folder, protein)
   
   for (motif in unique_motifs) {
+    # debug motif<- unique_motifs[1]
+    
     print(motif)
     motif_data <- protein_data[protein_data$motif == motif, ]
     
@@ -1236,17 +1265,28 @@ for (protein in protein_folders) { # [start:stop]
     
     # Loop through each combination of two biosamples
     for (biosample_comb in biosample_combinations) {
+      # debug biosample_comb <- biosample_combinations[[1]]
       print(biosample_comb)
       biosample_both <- paste(unlist(biosample_comb), collapse = "_")
       sim_output_dir <- file.path(motif_out_dir, biosample_both)
-      dir.create(sim_output_dir, recursive = TRUE, showWarnings = FALSE)
+      dir.create(sim_output_dir,
+                 recursive = TRUE,
+                 showWarnings = FALSE)
       
       chromatin_state_col1 <- paste0("Chromatin_State_", biosample_comb[1])
       chromatin_state_col2 <- paste0("Chromatin_State_", biosample_comb[2])
       
       # Load merged data
-      rds_file <- file.path(protein_output_dir, paste(
-        biosample_both, protein, motif, "best_comparison_all_data_points.rds", sep = "_"))
+      rds_file <- file.path(
+        protein_output_dir,
+        paste(
+          biosample_both,
+          protein,
+          motif,
+          "best_comparison_all_data_points.rds",
+          sep = "_"
+        )
+      )
       
       merged_df <- readRDS(rds_file)
       merged_df <- merged_df[complete.cases(merged_df), ]
@@ -1256,49 +1296,221 @@ for (protein in protein_folders) { # [start:stop]
         filter(!!sym(chromatin_state_col1) == !!sym(chromatin_state_col2))
       
       sample_counts <- table(current_df$sample)
+      
       if (length(sample_counts) < 3) {
         stratified_test[[length(stratified_test) + 1]] <- data.frame(
           protein = protein,
           biosample1 = biosample_comb[1],
           biosample2 = biosample_comb[2],
           motif = motif,
-          data_set = NA,  # Placeholder; update as needed
-          n_1 = sample_counts[biosample_comb[1]] %||% 0,
-          n_2 = sample_counts[biosample_comb[2]] %||% 0,
-          n_both = sample_counts[biosample_both] %||% 0,
+          data_set = "stratified_test",
+          # Placeholder; update as needed
+          n_1 = ifelse(
+            biosample_comb[1] %in% names(sample_counts),
+            as.numeric(sample_counts[biosample_comb[1]]),
+            0
+          ),
+          n_2 = ifelse(
+            biosample_comb[2] %in% names(sample_counts),
+            as.numeric(sample_counts[biosample_comb[2]]),
+            0
+          ),
+          n_both = ifelse(
+            biosample_both %in% names(sample_counts),
+            as.numeric(sample_counts[biosample_both]),
+            0
+          ),
           p_value_S_bigger = NA,
           p_value_S_smaller = NA,
           observed_S_statistic = NA
         )
+        
         next
       }
       
+      
       # Calculate observed S statistic
       observed_S_statistic <- calculate_S_statistic(current_df, biosample_comb)
-      print(paste("Observed S for", protein, motif, ":", observed_S_statistic))
+      #print(paste("Observed S for", protein, motif, ":", observed_S_statistic))
       
-      # Perform permutation test
-      permuted_S_values <- foreach(
-        i = 1:n_permutations,
-        .combine = 'c',
-        .packages = c('dplyr', 'rlang')
-      ) %dopar% {
-        current_df %>%
-          group_by(!!sym(chromatin_state_col1), !!sym(chromatin_state_col2)) %>%
-          mutate(sample = sample(sample)) %>%
-          ungroup() %>%
-          calculate_S_statistic(biosample_comb)
+      # Define the file path for the saved permutation results
+      permuted_file <- file.path(sim_output_dir,
+                                 paste0("permuted_stratified_S_df", ".csv"))
+      
+      # Check if the file already exists
+      if (file.exists(permuted_file)) {
+        # Load the existing permutation results
+        permuted_stratified_S_df <- read.csv(permuted_file)
+        permuted_S_values <- permuted_stratified_S_df$S_statistic
+      } else {
+        # Perform permutation test
+        permuted_S_values <- foreach(
+          i = 1:n_permutations,
+          .combine = 'c',
+          .packages = c('dplyr', 'rlang')
+        ) %dopar% {
+          current_df %>%
+            group_by(!!sym(chromatin_state_col1),!!sym(chromatin_state_col2)) %>%
+            mutate(sample = sample(sample)) %>%
+            ungroup() %>%
+            calculate_S_statistic(biosample_comb)
+        }
       }
-      
       p_value_S_bigger <- mean(permuted_S_values >= observed_S_statistic)
       p_value_S_smaller <- mean(permuted_S_values <= observed_S_statistic)
+      
+      cat(
+        sprintf(
+          "Observed S statistic: %.4f | Out of %d permutations, %d >= observed (p=%s), %d <= observed (p=%s), two-sided p=%s\n",
+          observed_S_statistic,
+          length(permuted_S_values),
+          sum(permuted_S_values >= observed_S_statistic),
+          ifelse(
+            p_value_S_bigger == 0,
+            "< 1/length(permuted_S_values)",
+            sprintf("%.4f", p_value_S_bigger)
+          ),
+          sum(permuted_S_values <= observed_S_statistic),
+          ifelse(
+            p_value_S_smaller == 0,
+            "< 1/length(permuted_S_values)",
+            sprintf("%.4f", p_value_S_smaller)
+          ),
+          ifelse(
+            2 * min(p_value_S_bigger, p_value_S_smaller) == 0,
+            "< 1/length(permuted_S_values)",
+            sprintf("%.4f", 2 * min(
+              p_value_S_bigger, p_value_S_smaller
+            ))
+          )
+        )
+      )
+      
+      plot_flag <- FALSE
+      if (plot_flag) {
+        # Convert permuted S values to a data frame for visualization
+        permuted_stratified_S_df <- data.frame(S_statistic = permuted_S_values)
+        
+        # Save the permutation results as a CSV
+        write.csv(
+          permuted_stratified_S_df,
+          file = file.path(
+            sim_output_dir,
+            paste0("permuted_stratified_S_df", ".csv")
+          ),
+          row.names = FALSE
+        )
+        
+        # Create a histogram of permuted S statistics
+        histogram_plot <- ggplot(permuted_stratified_S_df, aes(x = S_statistic)) +
+          geom_histogram(
+            bins = 100,
+            fill = "lightblue",
+            color = "black"
+          ) +
+          geom_vline(
+            aes(xintercept = observed_S_statistic),
+            color = "red",
+            linetype = "dashed",
+            linewidth = 1
+          ) +
+          labs(
+            title = paste("Histogram of Permuted S Values for", data_set),
+            x = "S_statistic",
+            y = "Frequency"
+          ) +
+          theme_minimal()
+        
+        # Save the histogram plot
+        ggsave(
+          file = file.path(
+            sim_output_dir,
+            paste0("S_stratified_statistic_histogram_", ".svg")
+          ),
+          plot = histogram_plot,
+          device = "svg",
+          limitsize = FALSE
+        )  # Ensure larger plots can be saved
+        
+        
+        # Define the two samples dynamically
+        fRead_sample1 <- paste0("fRead_", biosample_comb[1])
+        fRead_sample2 <- paste0("fRead_", biosample_comb[2])
+        
+        # Assign colors dynamically
+        current_colors <- group.colors
+        current_colors[biosample_both] <- "gray"
+        
+        # Modify the `sample` column to include "present in both samples" where appropriate
+        current_df <- current_df %>%
+          mutate(
+            sample_label = case_when(
+              sample == biosample_comb[1] ~ biosample_comb[1],
+              sample == biosample_comb[2] ~ biosample_comb[2],
+              TRUE ~ "present in both samples"
+            )
+          )
+        
+        scatter_plot <- ggplot(current_df) +
+          geom_point(aes(
+            x = !!sym(paste0("fRead_", biosample_comb[1])),
+            y = !!sym(paste0("fRead_", biosample_comb[2])),
+            color = sample_label
+          ), size = 1.5) +
+          scale_color_manual(
+            values = c(group.colors, "present in both samples" = "gray"),
+            name = "Biosample"
+          ) +
+          labs(
+            title = paste(
+              motif,
+              "Scatterplot: CpG Methylation in",
+              biosample_comb[1],
+              "vs",
+              biosample_comb[2]
+            ),
+            x = paste("CpG Methylation in", biosample_comb[1]),
+            y = paste("CpG Methylation in", biosample_comb[2])
+          ) +
+          theme_minimal()
+        
+        # Ensure the directory for saving the plot exists
+        scatter_output_dir <- file.path(sim_output_dir)
+        if (!dir.exists(scatter_output_dir)) {
+          dir.create(scatter_output_dir, recursive = TRUE)
+        }
+        
+        # Save the scatter plot as an SVG file
+        scatter_plot_file <- file.path(
+          scatter_output_dir,
+          paste0(
+            motif,
+            "_Scatterplot_CpG_Methylation_",
+            biosample_comb[1],
+            "_vs_",
+            biosample_comb[2],
+            "_stratified.svg"
+          )
+        )
+        
+        ggsave(
+          filename = scatter_plot_file,
+          plot = scatter_plot,
+          width = 8,
+          # Width of the plot in inches
+          height = 6,
+          # Height of the plot in inches
+          device = "svg"  # Specify the SVG format
+        )
+      }
       
       stratified_test[[length(stratified_test) + 1]] <- data.frame(
         protein = protein,
         biosample1 = biosample_comb[1],
         biosample2 = biosample_comb[2],
         motif = motif,
-        data_set = NA,  # Placeholder; update as needed
+        data_set = "stratified_test",
+        # Placeholder; update as needed
         n_1 = sample_counts[biosample_comb[1]],
         n_2 = sample_counts[biosample_comb[2]],
         n_both = sample_counts[biosample_both],
@@ -1306,107 +1518,127 @@ for (protein in protein_folders) { # [start:stop]
         p_value_S_smaller = p_value_S_smaller,
         observed_S_statistic = observed_S_statistic
       )
+      
     }
   }
-}
-
-# Stop the cluster after all loops are done
-stopCluster(cl)
-
-# Combine results into a single data frame and save
-stratified_test <- do.call(rbind, stratified_test)
-rownames(stratified_test) <- NULL
-saveRDS(stratified_test, file = file.path(output_folder, "stratified_test.rds"))
-
-
-################## chat gpt temp ###########################################
-
-
-
-
-
-
-
-# Save the dataframe as an Excel sheet using openxlsx functions
-openxlsx::write.xlsx(summary_test, file = file.path(output_folder, "summary_test.xlsx"), overwrite = TRUE)
-
-
-summary_test <- readRDS(file = file.path(output_folder, "summary_test.rds"))
-
-# Loop over protein folders
-for (protein in protein_folders) {
-  # [1:1]
-  # protein <- "CTCF"
-  print(protein)
+}  
+  # Stop the cluster after all loops are done
+  stopCluster(cl)
   
-  protein_data <- filtered_summary_df[filtered_summary_df$protein == protein, ]
-  # Filter the data for the specific protein
+  # Combine results into a single data frame and save
+  stratified_test <- do.call(rbind, stratified_test)
+  rownames(stratified_test) <- NULL
+  saveRDS(stratified_test,
+          file = file.path(output_folder, "stratified_test_100k.rds"))
   
-  # Loop over unique motifs
-  unique_motifs <- unique(protein_data$motif)
   
-  for (motif in unique_motifs) {
-    # Filter the data for the current motif
-    # debug # motif <- unique_motifs[1]
-    print(motif)
-    motif_data <- protein_data[protein_data$motif == motif, ]
+######################## END STRAT TEST ###########################################
+  
+  
+  
+  
+  
+  
+  
+  # Save the dataframe as an Excel sheet using openxlsx functions
+  openxlsx::write.xlsx(
+    summary_test,
+    file = file.path(output_folder, "summary_test.xlsx"),
+    overwrite = TRUE
+  )
+  
+  
+  summary_test <- readRDS(file = file.path(output_folder, "summary_test.rds"))
+  
+  # Loop over protein folders
+  for (protein in protein_folders) {
+    # [1:1]
+    # protein <- "CTCF"
+    print(protein)
     
-    # Generate all combinations of two biosamples
-    biosample_combinations <- combn(unique(motif_data$biosample), 2, simplify = FALSE)
+    protein_data <- filtered_summary_df[filtered_summary_df$protein == protein, ]
+    # Filter the data for the specific protein
     
-    # Loop through each combination of two biosamples
-    for (biosample_comb in biosample_combinations) {
-      print(biosample_comb)
+    # Loop over unique motifs
+    unique_motifs <- unique(protein_data$motif)
+    
+    for (motif in unique_motifs) {
+      # Filter the data for the current motif
+      # debug # motif <- unique_motifs[1]
+      print(motif)
+      motif_data <- protein_data[protein_data$motif == motif, ]
       
-      # Dynamically generate the chromatin state column names for both biosamples
-      chromatin_state_col1 <- paste0("Chromatin_State_", biosample_comb[1])
-      chromatin_state_col2 <- paste0("Chromatin_State_", biosample_comb[2])
+      # Generate all combinations of two biosamples
+      biosample_combinations <- combn(unique(motif_data$biosample), 2, simplify = FALSE)
       
-      
-      merged_df <- readRDS(file = file.path(
-        output_folder,
-        protein,
-        paste(
-          unlist(biosample_comb)[1],
-          unlist(biosample_comb)[2],
+      # Loop through each combination of two biosamples
+      for (biosample_comb in biosample_combinations) {
+        print(biosample_comb)
+        
+        # Dynamically generate the chromatin state column names for both biosamples
+        chromatin_state_col1 <- paste0("Chromatin_State_", biosample_comb[1])
+        chromatin_state_col2 <- paste0("Chromatin_State_", biosample_comb[2])
+        
+        
+        merged_df <- readRDS(file = file.path(
+          output_folder,
           protein,
-          motif,
-          "best_comparison_all_data_points.rds",
-          sep = "_"
-        )
-      ))
-      
-      biosample_both <- paste(unlist(biosample_comb)[1], unlist(biosample_comb)[2], sep = "_")
-      
-      df_complete <- merged_df[complete.cases(merged_df), ]
-      
-      # Filter rows where chromatin states are the same for both samples
-      df_same_state <- df_complete %>%
-        filter(!!sym(chromatin_state_col1) == !!sym(chromatin_state_col2))
-      
-      # Filter rows where chromatin states are "1" in both samples
-      df_state1 <- df_complete %>%
-        filter(!!sym(chromatin_state_col1) == "1" & !!sym(chromatin_state_col2) == "1")
-      
-      
-      sample_counts <- table(df_complete$sample)
-      sample_counts_same_state <- table(df_same_state$sample)
-      sample_counts_state1 <- table(df_state1$sample)
-     
-      # Dynamically generate the column names for fRead values
-      fRead_col1 <- paste0("fRead_", biosample_comb[1])
-      fRead_col2 <- paste0("fRead_", biosample_comb[2])
-      
-      # Create the scatter plot
-      ggplot(df_state1, aes_string(x = fRead_col1, y = fRead_col2, color = "sample")) +
-        geom_point() +
-        labs(
-          title = paste(protein,motif,"Scatter Plot of fRead_", biosample_comb[1], " vs fRead_", biosample_comb[2]),
-          x = paste("fRead_", biosample_comb[1]),
-          y = paste("fRead_", biosample_comb[2])
-        ) +
-        theme_minimal()
-      
+          paste(
+            unlist(biosample_comb)[1],
+            unlist(biosample_comb)[2],
+            protein,
+            motif,
+            "best_comparison_all_data_points.rds",
+            sep = "_"
+          )
+        ))
+        
+        biosample_both <- paste(unlist(biosample_comb)[1],
+                                unlist(biosample_comb)[2],
+                                sep = "_")
+        
+        df_complete <- merged_df[complete.cases(merged_df), ]
+        
+        # Filter rows where chromatin states are the same for both samples
+        df_same_state <- df_complete %>%
+          filter(!!sym(chromatin_state_col1) == !!sym(chromatin_state_col2))
+        
+        # Filter rows where chromatin states are "1" in both samples
+        df_state1 <- df_complete %>%
+          filter(!!sym(chromatin_state_col1) == "1" &
+                   !!sym(chromatin_state_col2) == "1")
+        
+        
+        sample_counts <- table(df_complete$sample)
+        sample_counts_same_state <- table(df_same_state$sample)
+        sample_counts_state1 <- table(df_state1$sample)
+        
+        # Dynamically generate the column names for fRead values
+        fRead_col1 <- paste0("fRead_", biosample_comb[1])
+        fRead_col2 <- paste0("fRead_", biosample_comb[2])
+        
+        # Create the scatter plot
+        ggplot(df_state1,
+               aes_string(
+                 x = fRead_col1,
+                 y = fRead_col2,
+                 color = "sample"
+               )) +
+          geom_point() +
+          labs(
+            title = paste(
+              protein,
+              motif,
+              "Scatter Plot of fRead_",
+              biosample_comb[1],
+              " vs fRead_",
+              biosample_comb[2]
+            ),
+            x = paste("fRead_", biosample_comb[1]),
+            y = paste("fRead_", biosample_comb[2])
+          ) +
+          theme_minimal()
+        
+      }
     }
   }
-}

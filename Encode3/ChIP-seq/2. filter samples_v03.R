@@ -44,8 +44,8 @@ detachAllPackages()
 ################################################ INPUT ###################################################
 sample_names <- c("K562", "HepG2", "A549", "GM12878")
 encode_meta_file_name <- "metadata.tsv"
-input_folder <- "1. download from Encode3"
-output_folder <- "2. filter samples"
+input_folder <- "1.download_from_Encode3"
+output_folder <- "2.filter_samples"
 picuture_file_extension = "png"
 ################################################ INPUT ###################################################
 
@@ -115,12 +115,38 @@ df <- my_meta[,c("Experiment.target","Biosample.term.name","Experiment.accession
 ########################## last anayisy is news one checked by code above
 my_meta <- my_meta[!duplicated(df, fromLast = TRUE),]
 
+n_unique_experiments <- length(unique(my_meta$Experiment.accession))
+n_unique_proteins <- length(unique(my_meta$Experiment.target))
+
+
 # get sample coverage
 df_overview <- data.frame(target = unique(my_meta$Experiment.target))
 for(s in sample_names){
   df_overview[,s] <- df_overview$target %in% my_meta$Experiment.target[my_meta$Biosample.term.name == s]
 }
 df_overview$sum <- apply(X = df_overview[,-1],MARGIN = 1,FUN = sum)
+
+# Load required library
+library(dplyr)
+
+# Calculate the total number of unique experiment targets
+total_unique_targets <- df_overview %>%
+  select(target) %>%
+  distinct() %>%
+  nrow()
+
+# Calculate the number of unique experiment targets in at least two biosamples
+unique_targets_in_two_biosamples <- df_overview %>%
+  filter(sum > 1) %>% # 'sum' column indicates the number of TRUE values across biosamples
+  select(target) %>%
+  distinct() %>%
+  nrow()
+
+# Print results
+cat("Total unique experiment targets:", total_unique_targets, "\n")
+cat("Unique experiment targets in at least two biosamples:", unique_targets_in_two_biosamples, "\n")
+
+
 
 # only include targets with coverage in multiple samples 
 my_meta <- my_meta[my_meta$Experiment.target %in% df_overview$target[df_overview$sum >= 2],]
