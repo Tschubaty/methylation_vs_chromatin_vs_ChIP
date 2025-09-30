@@ -58,7 +58,7 @@ group.colors <- c(
 
 
 # set up parallel processing
-n_cores <- detectCores() - 1
+#n_cores <- detectCores() - 1
 
 CHR_NAMES <- paste0("chr", c(1:22))
 
@@ -152,3 +152,40 @@ dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)  # Create dir if 
 
 # Save as a large SVG
 ggsave(file.path(output_dir, "heatmap.svg"), plot = p, width = 15, height = 10)
+
+library(ggplot2)
+
+# optional: order axes
+df$biosample <- factor(df$biosample, levels = c("K562","HepG2","GM12878","A549"))
+# set your preferred mark order (edit to taste)
+hm_order <- c("H2AFZ","H3K27ac","H3K4me1","H3K4me3","H3K36me3","H3K27me3","H3K9me3")
+df$Histone_Modification <- factor(df$Histone_Modification, levels = hm_order)
+
+# nicer facet labels (e.g., “State 1” … “State 18”)
+state_labs <- setNames(paste("State", levels(df$Chromatin_State)),
+                       levels(df$Chromatin_State))
+
+p <- ggplot(df, aes(x = Histone_Modification, y = biosample, fill = Value)) +
+  geom_tile(color = "white", linewidth = 0.3) +
+  facet_wrap(~ Chromatin_State, ncol = 3,
+             labeller = labeller(Chromatin_State = state_labs)) +
+  scale_fill_gradient(low = "blue", high = "red", na.value = "white",
+                      name = "Emission\nprobability") +
+  coord_fixed() +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
+    panel.grid = element_blank(),
+    strip.text = element_text(face = "bold")
+  ) +
+  labs(
+    title = "Chromatin state model from histone modifications",
+    x = "Histone modification",
+    y = "Cell line"
+  )
+
+p
+
+# high-res export (your preference)
+ggsave("fig4_chromHMM_emissions.png", p, width = 12, height = 8, dpi = 300, limitsize = FALSE)
+

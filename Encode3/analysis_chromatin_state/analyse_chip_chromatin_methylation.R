@@ -282,8 +282,115 @@ p <- ggplot(final_summary_filtered, aes(x = factor(biosample), y = percentage_cp
 ggsave("CpG_Chromatin_State_1_Distribution.png", p, width = 10, height = 6, dpi = 300, limitsize = FALSE)
 
 
+saveRDS(object = final_summary_filtered ,file = "final_summary_filtered.rds")
 
 
+
+###### adding one plöot per proetien:
+library(dplyr)
+library(ggplot2)
+library(ggrepel)
+
+# single output folder
+out_dir <- "C:/Users/Batyrev/Documents/GitHub/methylation_vs_chromatin_vs_ChIP/Encode3/analysis_chromatin_state/protein_chromatin_state_plots"
+dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+
+prot_list <- sort(unique(final_summary2$protein_hit_short))
+
+for (prot in prot_list) {
+  print(prot)
+  lab_df <- final_summary2 %>% filter(protein_hit_short == prot)
+  
+  p <- ggplot(final_summary2, aes(x = factor(chromatin_state), y = percentage_cpgs, fill = biosample)) +
+    geom_boxplot(alpha = 0.5, outlier.shape = NA) +
+    geom_jitter(data = lab_df,mapping = aes(color = biosample), width = 0.2, alpha = 0.6, size = 1.5) +
+    geom_text_repel(
+      data = lab_df,
+      aes(label = protein_hit, color = biosample),
+      size = 1.8,                 # smaller font (~6 pt)
+      box.padding = 0.15,         # tighter box around labels
+      point.padding = 0.1,        # tighter point padding
+      max.overlaps = Inf,         # don’t drop labels
+      segment.size = 0.2,         # thinner connecting lines
+      segment.alpha = 0.5         # lighter connecting lines
+    )+
+    scale_fill_manual(values = group.colors) +
+    scale_color_manual(values = group.colors) +
+    labs(
+      x = "Chromatin State",
+      y = "Percentage of CpGs",
+      title = paste0("CpG Distribution Across Chromatin States – ", prot),
+      fill = "Biosample", color = "Biosample"
+    ) +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+  ggsave(
+    filename = file.path(out_dir, paste0("CpG_Chromatin_State_Distribution_", prot, ".png")),
+    plot = p,
+    width = 20, height = 12, dpi = 300, limitsize = FALSE
+  )
+}
+
+library(dplyr)
+library(ggplot2)
+library(ggrepel)
+
+# fixed order + offsets per biosample (4 lanes per state)
+lane_offset <- c(A549 = -0.30, GM12878 = -0.10, HepG2 = 0.10, K562 = 0.30)
+
+final_summary2 <- final_summary2 %>%
+  mutate(
+    biosample = factor(biosample, levels = biosamples),
+    chrom_state_f = factor(chromatin_state, levels = sort(unique(chromatin_state))),
+    x_pos = as.numeric(chrom_state_f) + lane_offset[as.character(biosample)]
+  )
+
+out_dir <- "C:/Users/Batyrev/Documents/GitHub/methylation_vs_chromatin_vs_ChIP/Encode3/analysis_chromatin_state/protein_chromatin_state_plots"
+dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+
+prot_list <- sort(unique(final_summary2$protein_hit_short))
+
+for (prot in prot_list) {
+  print(prot)
+  lab_df <- final_summary2 %>%
+    filter(protein_hit_short == prot) %>%
+    mutate(x_pos = as.numeric(chrom_state_f) + lane_offset[as.character(biosample)])
+  
+  p <- ggplot(final_summary2, aes(x = x_pos, y = percentage_cpgs)) +
+    geom_boxplot(
+      aes(fill = biosample, group = interaction(chrom_state_f, biosample)),
+      width = 0.18, outlier.shape = NA, alpha = 0.5, na.rm = TRUE
+    ) +
+    geom_jitter(
+      data = lab_df, aes(color = biosample),
+      width = 0.03, height = 0, size = 1.5, alpha = 0.6, na.rm = TRUE
+    ) +
+    geom_text_repel(
+      data = lab_df, aes(label = protein_hit, color = biosample),
+      size = 1.6, box.padding = 0.12, point.padding = 0.08,
+      segment.size = 0.2, segment.alpha = 0.5,
+      max.overlaps = Inf, na.rm = TRUE
+    ) +
+    scale_fill_manual(values = group.colors, limits = biosamples, drop = FALSE) +
+    scale_color_manual(values = group.colors, limits = biosamples, drop = FALSE) +
+    scale_x_continuous(
+      breaks = seq_along(levels(final_summary2$chrom_state_f)),
+      labels = levels(final_summary2$chrom_state_f)
+    ) +
+    labs(
+      x = "Chromatin State", y = "Percentage of CpGs",
+      title = paste0("CpG Distribution Across Chromatin States – ", prot),
+      fill = "Biosample", color = "Biosample"
+    ) +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+  ggsave(
+    file.path(out_dir, paste0("CpG_Chromatin_State_Distribution_", prot, ".png")),
+    p, width = 20, height = 12, dpi = 300, limitsize = FALSE
+  )
+}
 
 #######################################################################################
 

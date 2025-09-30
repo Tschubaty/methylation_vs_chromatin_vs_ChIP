@@ -12,7 +12,8 @@ library(DESeq2)      # Required for differential expression analysis
 library(ggplot2)     # Required for plotting
 
 # Set working directory
-base_dir <- "D:/Users/Daniel Batyrev/Documents/GitHub/methylation_vs_chromatin_vs_ChIP/Encode3/RNA-seq"
+base_dir <- getwd()
+#"D:/Users/Daniel Batyrev/Documents/GitHub/methylation_vs_chromatin_vs_ChIP/Encode3/RNA-seq"
 setwd(base_dir)
 
 # Create necessary folders if they don't exist

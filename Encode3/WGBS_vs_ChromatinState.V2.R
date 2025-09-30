@@ -194,12 +194,100 @@ if (FALSE) {
   
   cat("Final concatenated data saved to:", output_file, "\n")
   
-  # End script timing
+    # End script timing
   end_script <- Sys.time()
   cat("Script completed in:", end_script - start_script, "\n")
   
   #combined_df_chr <- read_delim(file = file.path(input_dir,"combined_methylation_data.bed"))
+  #combined_df_chr <- readRDS(file = file.path(input_dir,"combined_methylation_data_compact.rds"))
+
+  # ----- BEGIN: CpG chromatin state 1 summaries -----
+  cell_lines <- c("A549", "GM12878", "HepG2", "K562")
+  state_cols <- paste0("Chromatin_State_", cell_lines)
+  total_cpgs <- nrow(combined_df_chr)
+  percent_state1 <- sapply(state_cols, function(col) {
+    sum(combined_df_chr[[col]] == 1, na.rm = TRUE) / total_cpgs * 100
+  })
+  print("Percentage of CpGs in state 1 in each cell line:")
+  print(percent_state1)
   
+  pairwise_stable <- matrix(NA, nrow=length(cell_lines), ncol=length(cell_lines), dimnames=list(cell_lines, cell_lines))
+  for (i in seq_along(cell_lines)) {
+    for (j in seq_along(cell_lines)) {
+      if (i != j) {
+        col1 <- state_cols[i]
+        col2 <- state_cols[j]
+        idx1 <- which(combined_df_chr[[col1]] == 1)
+        stable_count <- sum(combined_df_chr[idx1, col2] == 1, na.rm = TRUE)
+        pairwise_stable[i, j] <- stable_count / length(idx1) * 100
+      }
+    }
+  }
+  print("Pairwise percent of 'state 1' CpGs in cell line 1 that are also 'state 1' in cell line 2:")
+  print(pairwise_stable)
+  # ----- END: CpG chromatin state 1 summaries -----
+  
+  # bar plto of concervation fo states:
+  library(readr)
+  library(ggplot2)
+  library(tidyr)
+  library(dplyr)
+  
+  cell_lines <- c("A549", "GM12878", "HepG2", "K562")
+  state_cols <- paste0("Chromatin_State_", cell_lines)
+  states <- as.character(1:18)
+  
+  results <- data.frame()
+  
+  for (i in seq_along(cell_lines)) {
+    for (j in seq_along(cell_lines)) {
+      if (i != j) {
+        col1 <- state_cols[i]
+        col2 <- state_cols[j]
+        for (state in states) {
+          idx_state1 <- which(combined_df_chr[[col1]] == state)
+          if (length(idx_state1) > 0) {
+            n_conserved <- sum(combined_df_chr[idx_state1, col2] == state, na.rm=TRUE)
+            percent_conserved <- n_conserved / length(idx_state1) * 100
+          } else {
+            percent_conserved <- NA  # avoid division by zero
+          }
+          results <- rbind(results, data.frame(
+            State = state,
+            CellLine1 = cell_lines[i],
+            CellLine2 = cell_lines[j],
+            PercentConserved = percent_conserved
+          ))
+        }
+      }
+    }
+  }
+  
+  # Ensure your chromatin_state_colors vector is named (if not already)
+  names(chromatin_state_colors) <- as.character(1:18)
+  
+  results$State <- factor(results$State, levels = as.character(1:18))
+  
+  ggplot(results, aes(x = State, y = PercentConserved, fill = State)) +
+    geom_bar(stat = "identity") +
+    facet_grid(CellLine1 ~ CellLine2) +
+    theme_bw() +
+    scale_fill_manual(
+      values = chromatin_state_colors,
+      labels = chromatin_state_names
+    ) +
+    labs(
+      title = "Percentage of CpGs with conserved chromatin state (by state, between cell line pairs)",
+      x = "Chromatin State",
+      y = "% Conserved"
+    ) +
+    theme(axis.text.x = element_blank())
+    #theme(axis.text.x = element_text(angle=90, vjust=0.5, hjust=1))
+  
+  #save as : Barplot of CpG Chromatin State Conservation Across Cell Line Pairs
+  
+  # barplots finished 
+
   # Number of chunks
   num_chunks <- 1000
   
