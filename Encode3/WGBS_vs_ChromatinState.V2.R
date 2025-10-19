@@ -528,6 +528,35 @@ ggsave(
   dpi = 300     # Set the resolution for the image
 )
 
+
+######################### log scale idea 
+
+library(scales)  # make sure it's loaded
+
+hist_plot <- ggplot(df_filtered, aes(x = fRead)) +
+  stat_bin(bins = 200, fill = "gray80", color = NA) +
+  scale_y_continuous(
+    trans = "log10",
+    labels = label_number(scale_cut = cut_si("")),  # <-- replacement
+    expand = expansion(mult = c(0, 0.08))           # a bit of headroom for labels
+  ) +
+  coord_cartesian(xlim = c(0,1)) +
+  facet_wrap(~ Biosample, ncol = 2) +
+  geom_vline(data = qdf, aes(xintercept = xint, color = q),
+             linetype = "dashed", linewidth = 0.5, show.legend = FALSE) +
+  geom_text(data = qdf, aes(x = xint, y = Inf, label = qlab, color = q),
+            vjust = 1.2, size = 2.8, show.legend = FALSE) +
+  scale_color_manual(values = c(q25="#D55E00", q50="#009E73", q75="#0072B2")) +
+  labs(title = "CpG methylation per biosample",
+       x = "CpG methylation (fRead)", y = "CpG count (log10)") +
+  theme_minimal(base_size = 11) +
+  theme(panel.spacing = unit(8, "pt"),
+        strip.text = element_text(face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 8)),
+        axis.title.x = element_text(margin = margin(t = 6)))
+
+
+
 ################### barplot states #######################################################
 rm("data")
 rm("barplot")
@@ -554,6 +583,45 @@ ggsave(
   height = 8,   # Set the desired height
   dpi = 300     # Set the resolution for the image
 )
+rm(barplot)
+gc()
+
+
+library(scales)
+
+# order states
+dfp <- df_filtered %>%
+  dplyr::mutate(Chromatin_State = factor(Chromatin_State, levels = as.character(1:18)))
+
+barplot_pub <- ggplot(dfp, aes(x = Chromatin_State, fill = Biosample)) +
+  geom_bar(position = position_dodge(width = 0.85), width = 0.72) +
+  scale_fill_manual(values = group.colors, name = "Biosample") +
+  scale_y_continuous(labels = label_number(big.mark = ","), expand = expansion(mult = c(0, 0.05))) +
+  labs(
+    title = "Counts of Chromatin States by Biosample",
+    x = "ChromHMM state",
+    y = "CpG count"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    text = element_text(face = "bold"),          # <-- make ALL text bold
+    legend.position = "top",
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    axis.text.x = element_text(size = 10),
+    axis.text.y = element_text(size = 10),
+    plot.title  = element_text(size = 14)
+  )
+
+ggsave(
+  filename = file.path(output_dir, " "),
+  plot = barplot_pub,
+  width = 11, height = 6, dpi = 300, limitsize = FALSE
+)
+rm(barplot_pub)
+gc()
+
+
 ###############################################################################
 library(dplyr)
 library(ggplot2)
@@ -1037,7 +1105,7 @@ for (stateX in all_states) {
 #   dpi = 300     # Set the resolution for the image
 # )
 # ################################################################################
-violin_plot <- ggplot(df_long_Chromatin_State_Biosample_fRead, aes(x = Biosample, y = fRead, fill = Biosample)) +
+violin_plot <- ggplot(df_filtered, aes(x = Biosample, y = fRead, fill = Biosample)) +
   geom_violin(trim = TRUE) +
   scale_fill_manual(values = group.colors) +  # Use the group.colors for fill
   labs(
@@ -1084,7 +1152,7 @@ rm(box_plot)
 gc()
 
 
-box_plot_states <- ggplot(df_long_Chromatin_State_Biosample_fRead, aes(x = Chromatin_State, y = fRead, fill = Biosample)) +
+box_plot_states <- ggplot(df_filtered, aes(x = Chromatin_State, y = fRead, fill = Biosample)) +
   scale_fill_manual(values = group.colors) +  # Use the group.colors for fill
   geom_boxplot(outliers = FALSE) +
   labs(
@@ -1104,6 +1172,68 @@ ggsave(
 rm(box_plot_states)
 gc()
 
+# Facet by biosample
+dfv <- df_filtered %>%
+  dplyr::mutate(Chromatin_State = factor(Chromatin_State, levels = as.character(1:18)))
+
+state_cols <- setNames(chromatin_state_colors, as.character(1:18))
+
+p_violin_facets <- ggplot(dfv, aes(x = Chromatin_State, y = fRead, fill = Chromatin_State)) +
+  geom_violin(trim = TRUE, scale = "width", color = NA) +
+  stat_summary(fun = median, geom = "point", size = 0.8, color = "black") +
+  facet_wrap(~ Biosample, ncol = 2) +
+  scale_fill_manual(values = state_cols, guide = "none") +
+  coord_cartesian(ylim = c(0, 1)) +
+  labs(title = "CpG methylation by ChromHMM state",
+       x = "ChromHMM state",
+       y = "CpG methylation (fRead)") +
+  theme_minimal(base_size = 12) +
+  theme(
+    panel.spacing = unit(8, "pt"),
+    strip.text = element_text(face = "bold"),
+    axis.text.x = element_text(size = 8),
+    plot.title = element_text(face = "bold"),
+    panel.grid.minor = element_blank()
+  )
+
+ggsave(file.path(output_dir, "violin_states_faceted.png"),
+       p_violin_facets, width = 12, height = 8, dpi = 300, limitsize = FALSE)
+rm(p_violin_facets)
+gc()
+
+
+
+# helper for IQR bars
+iqr_fn <- function(y) data.frame(y = median(y, na.rm = TRUE),
+                                 ymin = quantile(y, 0.25, na.rm = TRUE),
+                                 ymax = quantile(y, 0.75, na.rm = TRUE))
+
+p_violin_dodged <- ggplot(dfv, aes(x = Chromatin_State, y = fRead, fill = Biosample)) +
+  geom_violin(trim = TRUE, scale = "width",
+              position = position_dodge(width = 0.85),
+              width = 0.85, color = NA, alpha = 0.85) +
+  stat_summary(fun.data = iqr_fn, geom = "errorbar",
+               position = position_dodge(width = 0.85),
+               width = 0.18, linewidth = 0.35, color = "black") +
+  stat_summary(fun = median, geom = "point",
+               position = position_dodge(width = 0.85),
+               size = 0.8, color = "black") +
+  scale_fill_manual(values = group.colors) +
+  coord_cartesian(ylim = c(0, 1)) +
+  labs(title = "Distribution of CpG methylation by ChromHMM state",
+       x = "ChromHMM state", y = "CpG methylation (fRead)", fill = "Biosample") +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "right",
+    axis.text.x = element_text(size = 8),
+    plot.title = element_text(face = "bold"),
+    panel.grid.minor = element_blank()
+  )
+
+ggsave(file.path(output_dir, "violin_states_dodged.png"),
+       p_violin_dodged, width = 12, height = 7, dpi = 300, limitsize = FALSE)
+rm(p_violin_dodged)
+gc()
 
 # Create the bar plot
 bar_plot_state_count <- ggplot(df_long_Chromatin_State_Biosample_fRead, aes(x = Chromatin_State, fill = Biosample)) +
@@ -1123,6 +1253,57 @@ ggsave(
 )
 rm(bar_plot_state_count)
 gc()
+
+
+# nicer boxplot (dodged, slim boxes, median dots, tidy theme)
+box_plot_states <- ggplot(
+  df_filtered,
+  aes(x = factor(Chromatin_State, levels = as.character(1:18)),
+      y = fRead,
+      fill = Biosample)
+) +
+  geom_boxplot(
+    outlier.shape = NA,
+    position = position_dodge(width = 0.85),
+    width = 0.70,
+    linewidth = 0.3
+  ) +
+  # small black median dots to guide the eye
+  stat_summary(
+    fun = median, geom = "point",
+    position = position_dodge(width = 0.85),
+    size = 0.8, color = "black"
+  ) +
+  scale_fill_manual(values = group.colors) +
+  coord_cartesian(ylim = c(0, 1)) +
+  labs(
+    title = "CpG methylation by ChromHMM state",
+    x = "ChromHMM state",
+    y = "CpG methylation"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "top",
+    legend.title = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.spacing = unit(6, "pt"),
+    strip.text = element_text(face = "bold"),
+    axis.text.x = element_text(size = 8),
+    plot.title = element_text(face = "bold")
+  )
+
+
+# Save the violin plot to disk
+ggsave(
+  filename = file.path(output_dir, paste0("box_plot_states.", picuture_file_extension)),
+  plot = box_plot_states,
+  width = 12, height = 7, units = "in",
+  dpi = 300, limitsize = FALSE
+)
+
+rm(box_plot_states)
+gc()
+
 
 #################################################################
 
