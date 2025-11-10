@@ -859,7 +859,7 @@ for (protein in unique(summary_df$protein)) {
   
 }
 
-############################## calculate statistric #############################
+############################## calculate statistic #############################
 
 # Function to calculate S_statistic for a given data frame
 calculate_S_statistic <- function(df, biosample_comb) {
