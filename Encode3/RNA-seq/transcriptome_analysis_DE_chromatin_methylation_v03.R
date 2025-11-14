@@ -17,6 +17,15 @@ base_dir <- dirname(rstudioapi::getSourceEditorContext()$path)
 #"D:/Users/Daniel Batyrev/Documents/GitHub/methylation_vs_chromatin_vs_ChIP/Encode3/RNA-seq"
 setwd(base_dir)
 
+
+biosample_colors <- c(
+  "A549"    = "#E76BF3",
+  "GM12878" = "#A3A500",
+  "HepG2"   = "#F8766D",
+  "K562"    = "#00BFC4"
+)
+
+
 # Create necessary folders if they don't exist
 dirs <- c("raw_data2", "processed_data", "results", "plots")
 for (d in dirs) {
@@ -339,12 +348,17 @@ makeContrastVector <- function(g1, g2, design_colnames) {
   return(cv)
 }
 
+
+volcano_plot_list <- list()
 # (F) Loop over pairs
 for (p in all_pairs) {
+
+  library(ggtext)  # Install with: install.packages("ggtext") if needed
+  
   g1 <- p[1]
   g2 <- p[2]
   
-  contrast_label <- paste0(g1, "_vs_", g2)
+  contrast_label <- paste0(g1, " vs ", g2)
   
   # Build contrast vector
   contrast_vec <- makeContrastVector(g1, g2, colnames(design))
@@ -373,7 +387,12 @@ for (p in all_pairs) {
       "- DE Genes (FDR<", fdr_threshold, "& |logFC|>", logfc_threshold, "):", 
       num_sig, "/", nrow(pairwise_dt), "\n")
   
-  # Volcano plot
+  # Volcano plot with colored subtitle for biosample names
+  subtitle_str <- sprintf(
+    "<span style='color:%s'><b>%s</b></span> vs <span style='color:%s'><b>%s</b></span>: %d DE genes at FDR&lt;%s",
+    biosample_colors[g1], g1, biosample_colors[g2], g2, num_sig, fdr_threshold
+  )
+  
   volcano_plot <- ggplot(pairwise_dt, aes(x = logFC, y = -log10(PValue), color = Significance)) +
     geom_point(alpha = 0.8, size = 1.5) +
     theme_minimal() +
@@ -381,19 +400,30 @@ for (p in all_pairs) {
                                   "Downregulated" = "blue",
                                   "Not Significant" = "gray70")) +
     labs(
-      title = paste("Volcano Plot:", contrast_label),
-      subtitle = paste(num_sig, "DE genes at FDR<", fdr_threshold),
+      #title = paste("Volcano Plot:", contrast_label),
+      subtitle = subtitle_str,
       x = "Log2 Fold Change",
       y = "-log10(PValue)"
     ) +
-    theme(legend.title = element_blank())
+    theme(
+      legend.title = element_blank(),
+      plot.subtitle = ggtext::element_markdown(size = 14, face = "bold", hjust = 0.5)
+    )
   
+  volcano_plot_list[[paste0(g1, "_vs_", g2)]] <- volcano_plot
   plot_file <- file.path(volcano_dir, paste0("volcano_", contrast_label, ".png"))
   ggsave(plot_file, volcano_plot, width = 8, height = 6)
   cat("Saved volcano plot to:", plot_file, "\n\n")
 }
 
 cat("Step 4b complete: Pairwise contrasts and Volcano plots done.\n")
+library(cowplot)
+
+# You can arrange by col/row: ncol=2, nrow=3 for 6 plots
+grid_all <- cowplot::plot_grid(plotlist = volcano_plot_list, ncol = 2) # or ncol = 3 as desired
+
+ggsave(file.path(volcano_dir, "volcano_pairwise_grid.png"), grid_all, width = 12, height = 16)
+cat("Saved volcano plot grid to:", file.path(volcano_dir, "volcano_pairwise_grid.png"), "\n")
 
 #################################################################
 ##  Step 5: Store Differential Expression Results for Visualization
@@ -467,13 +497,6 @@ logCPM_long <- merge(
   by = "Experiment_accession"
 )
 
-# 4) Order the factor levels if desired
-biosample_colors <- c(
-  "A549"    = "#E76BF3",
-  "GM12878" = "#A3A500",
-  "HepG2"   = "#F8766D",
-  "K562"    = "#00BFC4"
-)
 
 logCPM_long[, Biosample := factor(Biosample, 
                                   levels = c("A549", "GM12878", "HepG2", "K562"))]
@@ -562,55 +585,51 @@ for (tx in selected_transcripts) {
 
 cat("Barplots for selected transcripts saved in:", plot_dir, "\n")
 
-
 #################################################################
-##  Step 7: PCA Analysis of RNA-seq Data
+##  Step 7: PCA Analysis of RNA-seq Data (REFRACTORED)
 #################################################################
 
 cat("Performing PCA analysis on transcript expression data...\n")
 
-# Load required libraries
 library(ggplot2)
 library(data.table)
 library(ggrepel)
 
-# Load normalized logCPM values
-logCPM_matrix <-  cpm(y, log=TRUE)  # Convert to log counts per million (logCPM)
+# Compute logCPM from merged, normalized counts
+logCPM <- cpm(y, log=TRUE)  # DGEList with merged replicates; one column per Experiment_accession
+logCPM_matrix <- as.matrix(logCPM)
 
-# Convert to numeric matrix
-logCPM_matrix <- as.matrix(logCPM_matrix)
+# Ensure metadata matches, and columns are named by Experiment_accession
+stopifnot(all(colnames(logCPM_matrix) == exp_meta$Experiment_accession))
 
-# Perform PCA
+# PCA (columns = Experiment_accession, i.e. one sample per point)
 pca <- prcomp(t(logCPM_matrix), scale. = TRUE)
-
-# Extract PCA results
 pca_data <- as.data.table(pca$x)
-pca_data$Experiment_accession<- colnames(logCPM_matrix)  # Add sample names
+pca_data[, Experiment_accession := colnames(logCPM_matrix)]
 
-# Merge with metadata to get biosample information
-pca_data <- merge(pca_data, metadata_clean, by.x = "Experiment_accession", by.y = "Experiment_accession")
+# Merge with condensed metadata (use exp_meta, not full metadata_clean!)
+pca_data <- merge(pca_data, exp_meta, by = "Experiment_accession", all.x = TRUE)
 
-# Define percentage variance explained by PC1 and PC2
+# Variance explained
 pca_var <- summary(pca)$importance[2, ]
 PC1_var <- round(pca_var[1] * 100, 2)
 PC2_var <- round(pca_var[2] * 100, 2)
 
-# PCA plot
-library(ggplot2)
-library(ggrepel)
-
-# -- Publication-ready PCA plot: Legend only for colors --
-pca_plot <- ggplot(pca_data, aes(x = PC1, y = PC2, color = Biosample, fill = Biosample)) +
-  geom_point(size = 5, shape = 21, alpha = 0.7, stroke = 0) +    # semi-transparent, filled, no border
-  geom_text_repel(aes(label = Experiment_accession),             # map only label, not color (avoids legend entry)
-                  size = 4, box.padding = 0.5, fontface = "bold", max.overlaps = Inf, segment.size = 0.3, show.legend = FALSE) +
-  scale_color_manual(values = c("A549" = "#E76BF3", "GM12878" = "#A3A500", "HepG2" = "#F8766D", "K562" = "#00BFC4")) +
-  scale_fill_manual(values = c("A549" = "#E76BF3", "GM12878" = "#A3A500", "HepG2" = "#F8766D", "K562" = "#00BFC4")) +
+# PCA plot (visible colored points with legend)
+pca_plot <- ggplot(pca_data, aes(x = PC1, y = PC2, fill = Biosample)) +
+  geom_point(size = 5, shape = 21, alpha = 0.7, color = "gray60", stroke = 0.7) +
+  geom_text_repel(aes(label = Experiment_accession),
+                  size = 4, box.padding = 0.5, fontface = "bold",
+                  max.overlaps = Inf, segment.size = 0.3, show.legend = FALSE) +
+  scale_fill_manual(values = c("A549" = "#E76BF3",
+                               "GM12878" = "#A3A500",
+                               "HepG2" = "#F8766D",
+                               "K562" = "#00BFC4"),
+                    name = "Biosample") +
   labs(
     title = "PCA of RNA-Seq Data",
     x = paste0("PC1: ", PC1_var, "% variance"),
-    y = paste0("PC2: ", PC2_var, "% variance"),
-    color = "Biosample", fill = "Biosample"
+    y = paste0("PC2: ", PC2_var, "% variance")
   ) +
   theme_bw(base_size = 16) +
   theme(
@@ -625,37 +644,36 @@ ggsave(file.path(base_dir, "plots", "PCA_plot_publication.png"), plot = pca_plot
 
 
 #################################################################
-## Perform t-SNE Analysis
+## Perform t-SNE Analysis (REFRACTORED)
 #################################################################
-library(Rtsne)  # Required for t-SNE
+library(Rtsne)
 
 cat("Performing t-SNE analysis on transcript expression data...\n")
 
-# Run t-SNE
-set.seed(123)  # For reproducibility
+set.seed(123)
 tsne_results <- Rtsne(t(logCPM_matrix), perplexity = 4, check_duplicates = FALSE)
-
-# Convert t-SNE output to data.table
 tsne_data <- as.data.table(tsne_results$Y)
 colnames(tsne_data) <- c("tSNE1", "tSNE2")
-tsne_data$Experiment_accession <- colnames(logCPM_matrix)
+tsne_data[, Experiment_accession := colnames(logCPM_matrix)]
 
-# Merge with metadata
-tsne_data <- merge(tsne_data, metadata_clean, by.x = "Experiment_accession", by.y = "Experiment_accession")
+# Merge with condensed metadata (use exp_meta, not full metadata_clean!)
+tsne_data <- merge(tsne_data, exp_meta, by = "Experiment_accession", all.x = TRUE)
 
-# t-SNE plot
-# -- Publication-ready t-SNE plot: Legend only for colors --
-tsne_plot <- ggplot(tsne_data, aes(x = tSNE1, y = tSNE2, color = Biosample, fill = Biosample)) +
-  geom_point(size = 5, shape = 21, alpha = 0.7, stroke = 0) +
-  geom_text_repel(aes(label = Experiment_accession), 
-                  size = 4, box.padding = 0.5, fontface = "bold", max.overlaps = Inf, segment.size = 0.3, show.legend = FALSE) +
-  scale_color_manual(values = c("A549" = "#E76BF3", "GM12878" = "#A3A500", "HepG2" = "#F8766D", "K562" = "#00BFC4")) +
-  scale_fill_manual(values = c("A549" = "#E76BF3", "GM12878" = "#A3A500", "HepG2" = "#F8766D", "K562" = "#00BFC4")) +
+# t-SNE plot (visible colored points with legend)
+tsne_plot <- ggplot(tsne_data, aes(x = tSNE1, y = tSNE2, fill = Biosample)) +
+  geom_point(size = 5, shape = 21, alpha = 0.7, color = "gray60", stroke = 0.7) +
+  geom_text_repel(aes(label = Experiment_accession),
+                  size = 4, box.padding = 0.5, fontface = "bold",
+                  max.overlaps = Inf, segment.size = 0.3, show.legend = FALSE) +
+  scale_fill_manual(values = c("A549" = "#E76BF3",
+                               "GM12878" = "#A3A500",
+                               "HepG2" = "#F8766D",
+                               "K562" = "#00BFC4"),
+                    name = "Biosample") +
   labs(
     title = "t-SNE of RNA-Seq Data",
     x = "tSNE 1",
-    y = "tSNE 2",
-    color = "Biosample", fill = "Biosample"
+    y = "tSNE 2"
   ) +
   theme_bw(base_size = 16) +
   theme(

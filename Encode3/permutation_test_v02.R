@@ -844,6 +844,83 @@ for (protein in protein_folders[start:stop]) {
     overwrite = TRUE
   )
   
+######################## start heat map  ###########################################  
+  # --- HEAT MAP of p_value_S_bigger by chromatin state (1..18) ---
+  
+  library(dplyr)
+  library(tidyr)
+  library(ggplot2)
+  library(scales)
+  
+  heat_df <- stratified_test %>%
+    mutate(
+      state = as.integer(sub("^state_", "", data_set)),
+      row_id = paste(protein, biosample1, biosample2, motif, sep = " | "),
+      p_big  = p_value_S_bigger
+    ) %>%
+    select(row_id, state, p_big) %>%
+    # ensure full grid: every row gets states 1..18 (missing -> NA -> black)
+    complete(row_id, state = 1:18)
+  
+  # order rows (optional): by protein then motif naturally, or keep current
+  # heat_df <- heat_df %>%
+  #   separate_wider_delim(row_id, delim = " \\| ", names = c("protein","b1","b2","motif"), too_many = "merge") %>%
+  #   arrange(protein, motif, b1, b2) %>%
+  #   mutate(row_id = paste(protein, b1, b2, motif, sep = " | ")) %>%
+  #   select(row_id, state, p_big)
+  
+  heat_df$row_id <- factor(heat_df$row_id, levels = unique(heat_df$row_id))
+  heat_df$state  <- factor(heat_df$state, levels = 1:18)
+  
+  # color mapping:
+  # - strong blue at <=0.05
+  # - white around 0.5 (not significant)
+  # - strong red at >=0.95
+  # - NA -> black
+  col_vals  <- c(0, 0.05, 0.5, 0.95, 1)
+  col_scale <- c("navy", "#9ecae1", "white", "#fcae91", "firebrick")
+  
+  p_heat <- ggplot(heat_df, aes(x = state, y = row_id, fill = p_big)) +
+    geom_tile(color = "grey90", linewidth = 0.1) +
+    scale_fill_gradientn(
+      colours = col_scale,
+      values  = rescale(col_vals, from = c(0, 1)),  # positions at 0,0.05,0.5,0.95,1
+      limits  = c(0, 1),
+      oob     = squish,
+      na.value = "black",
+      name = "p(S ≥ S_obs)"
+    ) +
+    labs(
+      x = "Chromatin state",
+      y = "protein | biosample1 | biosample2 | motif",
+      title = "Permutation test (p_value_S_bigger) by chromatin state"
+    ) +
+    theme_minimal() +
+    theme(
+      panel.grid = element_blank(),
+      axis.text.x = element_text(size = 8),
+      axis.text.y = element_text(size = 7),
+      plot.title  = element_text(face = "bold", size = 12),
+      legend.position = "right"
+    )
+  
+  # dynamic height: ~0.35 inch per row (tweak if needed)
+  n_rows <- nlevels(heat_df$row_id)
+  ggsave(
+    filename = file.path(output_folder, "heatmap_states18_p_bigger.svg"),
+    plot = p_heat,
+    width = 12,
+    height = max(3, 0.35 * n_rows),
+    device = "svg",
+    limitsize = FALSE
+  )
+  
+  # (Optional) If you’d rather visualize two-sided p-values:
+  # heat_df <- heat_df %>% mutate(p_two = pmin(2 * pmin(p_value_S_bigger, 1 - p_value_S_bigger), 1))
+  # ...then replace 'p_big' above with 'p_two' and adjust the legend name accordingly.
+  
+  
+  
   
   summary_test <- readRDS(file = file.path(output_folder, "summary_test.rds"))
   
