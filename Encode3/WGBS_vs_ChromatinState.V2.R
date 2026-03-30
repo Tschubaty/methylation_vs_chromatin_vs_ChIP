@@ -1114,9 +1114,65 @@ violin_plot <- ggplot(df_filtered, aes(x = Biosample, y = fRead, fill = Biosampl
     y = "fRead"
   ) +
   theme_minimal()
+# violin_plot <- ggplot(
+#   df_filtered,
+#   aes(x = Biosample, y = fRead, fill = Biosample)
+# ) +
+#   geom_violin(
+#     trim = TRUE,
+#     scale = "width",
+#     color = "black",
+#     linewidth = 0.3,
+#     alpha = 0.9
+#   ) +
+#   stat_summary(
+#     fun.data = function(y) {
+#       data.frame(
+#         y = median(y, na.rm = TRUE),
+#         ymin = quantile(y, 0.25, na.rm = TRUE),
+#         ymax = quantile(y, 0.75, na.rm = TRUE)
+#       )
+#     },
+#     geom = "errorbar",
+#     width = 0.12,
+#     linewidth = 0.4,
+#     color = "black"
+#   ) +
+#   stat_summary(
+#     fun = median,
+#     geom = "point",
+#     size = 1.4,
+#     color = "black"
+#   ) +
+#   scale_fill_manual(
+#     values = group.colors,
+#     name = "Cell line",
+#     breaks = c("HepG2", "K562", "GM12878", "A549"),
+#     labels = c("HepG2", "K562", "GM12878", "A549")
+#   ) +
+#   scale_y_continuous(
+#     limits = c(0, 1),
+#     breaks = c(0, 0.25, 0.5, 0.75, 1.0),
+#     labels = c("0.00", "0.25", "0.50", "0.75", "1.00"),
+#     expand = expansion(mult = c(0.01, 0.02))
+#   ) +
+#   labs(
+#     title = "Genome-wide CpG methylation by cell line",
+#     x = "Cell line",
+#     y = "CpG methylation (fRead)"
+#   ) +
+#   theme_classic(base_size = 12) +
+#   theme(
+#     plot.title = element_text(face = "bold", hjust = 0.5, size = 13),
+#     axis.title = element_text(face = "bold"),
+#     axis.text = element_text(color = "black"),
+#     legend.position = "right",
+#     legend.title = element_text(face = "bold"),
+#     panel.border = element_blank()
+#   )
 
 # Display the violin plot
-#print(violin_plot)lui
+#print(violin_plot)
 
 # Save the violin plot to disk
 ggsave(

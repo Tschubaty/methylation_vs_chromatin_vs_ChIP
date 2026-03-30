@@ -528,6 +528,27 @@ genes_of_interest <- c(
   "SIRT1", "SIRT2", "SIRT3", "SIRT4", "SIRT5", "SIRT6", "SIRT7"
 )
 
+
+genes_of_interest <- c(
+  "DNMT1", "DNMT3A", "DNMT3B", "DNMT3L", "TET1", "TET2", "TET3", "UHRF1", "TDG",
+  "MAT2A", "MAT2B", "AHCY", "MTHFD1", "MTHFD2", "MTR", "MTRR", "SHMT1", "SHMT2", "DHFR", "CBS", "SLC19A1",
+  "EZH2", "EZH1", "SUZ12", "EED", "RBBP4", "RBBP7", "BMI1", "CBX2", "CBX4", "CBX6", "CBX7", "CBX8",
+  "PHC1", "PHC2", "PHC3", "KDM6A", "KDM6B",
+  "EHMT1", "EHMT2", "SUV39H1", "SUV39H2", "SETDB1", "SETDB2", "TRIM28", "CBX1", "CBX3", "CBX5",
+  "KDM3A", "KDM4A", "KDM4B", "KDM4C",
+  "EP300", "CREBBP", "KAT2A", "KAT2B", "KAT5", "KAT6A", "KAT6B",
+  "HDAC1", "HDAC2", "HDAC3", "HDAC8", "SIRT1", "SIRT6", "NCOR1", "NCOR2", "SIN3A",
+  "KMT2A", "KMT2B", "KMT2C", "KMT2D", "SETD1A", "SETD1B", "ASH2L", "WDR5", "RBBP5",
+  "KDM1A", "KDM1B", "KDM5A", "KDM5B", "KDM5C", "KDM5D",
+  "SETD2", "NSD1", "NSD2", "NSD3", "ASH1L", "KDM2A", "KDM2B",
+  "HIRA", "ATRX", "DAXX", "SRCAP", "EP400", "CHAF1A", "CHAF1B",
+  "SMARCA4", "SMARCA2", "ARID1A", "ARID1B", "SMARCB1", "SMARCC1", "SMARCC2", "ACTL6A",
+  "CHD1", "CHD2", "CHD4", "CHD7", "CHD8", "HELLS", "INO80",
+  "CTCF", "RAD21", "SMC1A", "SMC3", "STAG1", "STAG2", "NIPBL", "WAPL",
+  "MECP2", "MBD1", "MBD2", "MBD3", "MBD4", "ZBTB33", "UHRF2",
+  "IDH1", "IDH2", "OGDH", "SDHA", "SDHB", "FH", "ACLY", "ACSS2"
+)
+
 # Identify matching transcripts
 genes_in_data <- expression_data_annotated[gene_name %in% genes_of_interest]
 selected_transcripts <- unique(genes_in_data$transcript_id)
@@ -584,6 +605,86 @@ for (tx in selected_transcripts) {
 }
 
 cat("Barplots for selected transcripts saved in:", plot_dir, "\n")
+
+
+# 9) Create sorted tables for manual review
+
+goi_results_sorted <- merge(
+  unique(genes_in_data[, .(transcript_id, gene_name)]),
+  res_edgeR_dt_annot[, .(
+    transcript_id,
+    PValue,
+    FDR,
+    F,
+    logCPM,
+    logFC.groupGM12878,
+    logFC.groupHepG2,
+    logFC.groupK562
+  )],
+  by = "transcript_id",
+  all.x = TRUE
+)
+
+# all transcripts sorted by raw p-value
+setorder(goi_results_sorted, PValue, FDR)
+
+# add expected plot file path
+goi_results_sorted[, plot_file := file.path(
+  plot_dir,
+  paste0("logCPM_", gene_name, "_", transcript_id, ".png")
+)]
+
+# save full transcript-level table
+fwrite(
+  goi_results_sorted,
+  file.path(base_dir, "genes_of_interest_all_transcripts_sorted_by_pvalue.tsv"),
+  sep = "\t"
+)
+
+# best transcript per gene
+goi_best_per_gene <- goi_results_sorted[order(PValue, FDR), .SD[1], by = gene_name]
+setorder(goi_best_per_gene, PValue, FDR)
+
+# save best-transcript-per-gene table
+fwrite(
+  goi_best_per_gene,
+  file.path(base_dir, "genes_of_interest_best_transcript_per_gene_sorted_by_pvalue.tsv"),
+  sep = "\t"
+)
+
+# print top hits for quick review
+cat("\nTop 50 transcripts from genes of interest by PValue:\n")
+print(goi_results_sorted[1:min(50, .N), .(
+  gene_name,
+  transcript_id,
+  PValue,
+  FDR,
+  F,
+  logCPM,
+  logFC.groupGM12878,
+  logFC.groupHepG2,
+  logFC.groupK562,
+  plot_file
+)])
+
+cat("\nTop 50 genes (best transcript per gene) by PValue:\n")
+print(goi_best_per_gene[1:min(50, .N), .(
+  gene_name,
+  transcript_id,
+  PValue,
+  FDR,
+  F,
+  logCPM,
+  logFC.groupGM12878,
+  logFC.groupHepG2,
+  logFC.groupK562
+)])
+
+
+cat("\nTop 50 genes (best transcript per gene) by PValue:\n")
+print(goi_best_per_gene[1:min(50, .N), .(
+  gene_name
+)])
 
 #################################################################
 ##  Step 7: PCA Analysis of RNA-seq Data (REFRACTORED)
