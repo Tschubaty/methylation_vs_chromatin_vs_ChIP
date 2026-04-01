@@ -55,7 +55,7 @@ library(ggplot2)
 
 ##################################### INPUT ########################################
 
-combined_methylation_data_compact_withpeaks <- readRDS("D:/Users/Daniel Batyrev/Documents/GitHub/methylation_vs_chromatin_vs_ChIP/Encode3/analysis_chromatin_state/combined_methylation_data_compact_withpeaks.rds")
+combined_methylation_data_compact_withpeaks <- readRDS(file.path(this.dir,"combined_methylation_data_compact_withpeaks.rds"))
 
 ################################## constants #####################################
 start_script <- Sys.time()
@@ -201,7 +201,7 @@ ggplot(final_summary, aes(x = factor(chromatin_state), y = percentage_cpgs, fill
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-
+library(stringr)
 
 # Extract short protein names before aggregation
 final_summary2 <- final_summary %>%
@@ -292,7 +292,7 @@ library(ggplot2)
 library(ggrepel)
 
 # single output folder
-out_dir <- "C:/Users/Batyrev/Documents/GitHub/methylation_vs_chromatin_vs_ChIP/Encode3/analysis_chromatin_state/protein_chromatin_state_plots"
+out_dir <- file.path(this.dir,"protein_chromatin_state_plots")
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 
 prot_list <- sort(unique(final_summary2$protein_hit_short))
@@ -300,20 +300,21 @@ prot_list <- sort(unique(final_summary2$protein_hit_short))
 for (prot in prot_list) {
   print(prot)
   lab_df <- final_summary2 %>% filter(protein_hit_short == prot)
-  
+
   p <- ggplot(final_summary2, aes(x = factor(chromatin_state), y = percentage_cpgs, fill = biosample)) +
     geom_boxplot(alpha = 0.5, outlier.shape = NA) +
     geom_jitter(data = lab_df,mapping = aes(color = biosample), width = 0.2, alpha = 0.6, size = 1.5) +
-    geom_text_repel(
-      data = lab_df,
-      aes(label = protein_hit, color = biosample),
-      size = 1.8,                 # smaller font (~6 pt)
-      box.padding = 0.15,         # tighter box around labels
-      point.padding = 0.1,        # tighter point padding
-      max.overlaps = Inf,         # don’t drop labels
-      segment.size = 0.2,         # thinner connecting lines
-      segment.alpha = 0.5         # lighter connecting lines
-    )+
+    ggtitle(label = prot)+
+    # geom_text_repel(
+    #   data = lab_df,
+    #   aes(label = protein_hit, color = biosample),
+    #   size = 1.8,                 # smaller font (~6 pt)
+    #   box.padding = 0.15,         # tighter box around labels
+    #   point.padding = 0.1,        # tighter point padding
+    #   max.overlaps = Inf,         # don’t drop labels
+    #   segment.size = 0.2,         # thinner connecting lines
+    #   segment.alpha = 0.5         # lighter connecting lines
+    # )+
     scale_fill_manual(values = group.colors) +
     scale_color_manual(values = group.colors) +
     labs(
@@ -324,7 +325,7 @@ for (prot in prot_list) {
     ) +
     theme_minimal() +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
-  
+
   ggsave(
     filename = file.path(out_dir, paste0("CpG_Chromatin_State_Distribution_", prot, ".png")),
     plot = p,
@@ -332,65 +333,65 @@ for (prot in prot_list) {
   )
 }
 
-library(dplyr)
-library(ggplot2)
-library(ggrepel)
-
-# fixed order + offsets per biosample (4 lanes per state)
-lane_offset <- c(A549 = -0.30, GM12878 = -0.10, HepG2 = 0.10, K562 = 0.30)
-
-final_summary2 <- final_summary2 %>%
-  mutate(
-    biosample = factor(biosample, levels = biosamples),
-    chrom_state_f = factor(chromatin_state, levels = sort(unique(chromatin_state))),
-    x_pos = as.numeric(chrom_state_f) + lane_offset[as.character(biosample)]
-  )
-
-out_dir <- "C:/Users/Batyrev/Documents/GitHub/methylation_vs_chromatin_vs_ChIP/Encode3/analysis_chromatin_state/protein_chromatin_state_plots"
-dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
-
-prot_list <- sort(unique(final_summary2$protein_hit_short))
-
-for (prot in prot_list) {
-  print(prot)
-  lab_df <- final_summary2 %>%
-    filter(protein_hit_short == prot) %>%
-    mutate(x_pos = as.numeric(chrom_state_f) + lane_offset[as.character(biosample)])
-  
-  p <- ggplot(final_summary2, aes(x = x_pos, y = percentage_cpgs)) +
-    geom_boxplot(
-      aes(fill = biosample, group = interaction(chrom_state_f, biosample)),
-      width = 0.18, outlier.shape = NA, alpha = 0.5, na.rm = TRUE
-    ) +
-    geom_jitter(
-      data = lab_df, aes(color = biosample),
-      width = 0.03, height = 0, size = 1.5, alpha = 0.6, na.rm = TRUE
-    ) +
-    geom_text_repel(
-      data = lab_df, aes(label = protein_hit, color = biosample),
-      size = 1.6, box.padding = 0.12, point.padding = 0.08,
-      segment.size = 0.2, segment.alpha = 0.5,
-      max.overlaps = Inf, na.rm = TRUE
-    ) +
-    scale_fill_manual(values = group.colors, limits = biosamples, drop = FALSE) +
-    scale_color_manual(values = group.colors, limits = biosamples, drop = FALSE) +
-    scale_x_continuous(
-      breaks = seq_along(levels(final_summary2$chrom_state_f)),
-      labels = levels(final_summary2$chrom_state_f)
-    ) +
-    labs(
-      x = "Chromatin State", y = "Percentage of CpGs",
-      title = paste0("CpG Distribution Across Chromatin States – ", prot),
-      fill = "Biosample", color = "Biosample"
-    ) +
-    theme_minimal() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
-  
-  ggsave(
-    file.path(out_dir, paste0("CpG_Chromatin_State_Distribution_", prot, ".png")),
-    p, width = 20, height = 12, dpi = 300, limitsize = FALSE
-  )
-}
+# library(dplyr)
+# library(ggplot2)
+# library(ggrepel)
+# 
+# # fixed order + offsets per biosample (4 lanes per state)
+# lane_offset <- c(A549 = -0.30, GM12878 = -0.10, HepG2 = 0.10, K562 = 0.30)
+# 
+# final_summary2 <- final_summary2 %>%
+#   mutate(
+#     biosample = factor(biosample, levels = biosamples),
+#     chrom_state_f = factor(chromatin_state, levels = sort(unique(chromatin_state))),
+#     x_pos = as.numeric(chrom_state_f) + lane_offset[as.character(biosample)]
+#   )
+# 
+# out_dir <- file.path(this.dir,"protein_chromatin_state_plots")
+# dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+# 
+# prot_list <- sort(unique(final_summary2$protein_hit_short))
+# 
+# for (prot in prot_list) {
+#   print(prot)
+#   lab_df <- final_summary2 %>%
+#     filter(protein_hit_short == prot) %>%
+#     mutate(x_pos = as.numeric(chrom_state_f) + lane_offset[as.character(biosample)])
+#   
+#   p <- ggplot(final_summary2, aes(x = x_pos, y = percentage_cpgs)) +
+#     geom_boxplot(
+#       aes(fill = biosample, group = interaction(chrom_state_f, biosample)),
+#       width = 0.18, outlier.shape = NA, alpha = 0.5, na.rm = TRUE
+#     ) +
+#     geom_jitter(
+#       data = lab_df, aes(color = biosample),
+#       width = 0.03, height = 0, size = 1.5, alpha = 0.6, na.rm = TRUE
+#     ) +
+#     # geom_text_repel(
+#     #   data = lab_df, aes(label = protein_hit, color = biosample),
+#     #   size = 1.6, box.padding = 0.12, point.padding = 0.08,
+#     #   segment.size = 0.2, segment.alpha = 0.5,
+#     #   max.overlaps = Inf, na.rm = TRUE
+#     # ) +
+#     scale_fill_manual(values = group.colors, limits = biosamples, drop = FALSE) +
+#     scale_color_manual(values = group.colors, limits = biosamples, drop = FALSE) +
+#     scale_x_continuous(
+#       breaks = seq_along(levels(final_summary2$chrom_state_f)),
+#       labels = levels(final_summary2$chrom_state_f)
+#     ) +
+#     labs(
+#       x = "Chromatin State", y = "Percentage of CpGs",
+#       title = paste0("CpG Distribution Across Chromatin States – ", prot),
+#       fill = "Biosample", color = "Biosample"
+#     ) +
+#     theme_minimal() +
+#     theme(axis.text.x = element_text(angle = 45, hjust = 1))
+#   
+#   ggsave(
+#     file.path(out_dir, paste0("CpG_Chromatin_State_Distribution_", prot, ".png")),
+#     p, width = 20, height = 12, dpi = 300, limitsize = FALSE
+#   )
+# }
 
 #######################################################################################
 
@@ -501,9 +502,9 @@ summarize_chromatin_states <- function(file_path, biosample) {
   df_ChIP <- df_ChIP %>%
     mutate(
       !!sym(chromatin_col) := case_when(
-        is.na(!!sym(chromatin_col)) | !!sym(chromatin_col) == "." & start_motif == -1 ~ "No motif in peak",
-        is.na(!!sym(chromatin_col)) | !!sym(chromatin_col) == "." & start_motif != -1 & start_cg == 0 ~ "No CG in motif",
-        is.na(!!sym(chromatin_col)) | !!sym(chromatin_col) == "." & start_motif != -1 & start_cg != 0 ~ "No State assignment for CG",
+        (is.na(!!sym(chromatin_col)) | !!sym(chromatin_col) == ".") & start_motif == -1 ~ "No motif in peak",
+        (is.na(!!sym(chromatin_col)) | !!sym(chromatin_col) == ".") & start_motif != -1 & start_cg == 0 ~ "No CG in motif",
+        (is.na(!!sym(chromatin_col)) | !!sym(chromatin_col) == ".") & start_motif != -1 & start_cg != 0 ~ "No State assignment for CG",
         TRUE ~ !!sym(chromatin_col)  # Keep original value otherwise
       )
     )
@@ -534,6 +535,41 @@ summarize_chromatin_states <- function(file_path, biosample) {
     )
   
   return(summary)
+}
+
+## bugfinxin this seciton 
+
+input_ChIP_dir <- file.path(dirname(this.dir), "meme", "fimo_single_experiments_on_known_motif_and_peaks_add_methylation_v3")
+
+# Function to extract and clean column names from the first row of a text file
+extract_colnames <- function(file_path) {
+  # Read the first row
+  first_row <- readLines(file_path, n = 1)
+  
+  # Remove the leading "#" and replace double tabs with single tab
+  cleaned_row <- gsub("#", "", first_row)          # Remove leading #
+  
+  # Split the cleaned string into individual column names
+  colnames <- unlist(strsplit(cleaned_row, "\t"))
+  
+  return(colnames)
+}
+
+# Function to read .bed files with dynamically extracted column names and correct column types
+read_bed_file <- function(file_path) {
+  # Extract the correct column names from the first row
+  colnames <- extract_colnames(file_path)
+  
+  # Read the BED file, skipping the first line (header row)
+  df <- readr::read_delim(
+    file_path,
+    delim = "\t",
+    skip = 1,
+    col_names = colnames,
+    show_col_types = FALSE
+  )
+  
+  return(df)
 }
 
 # Initialize a list to store summaries for all experiments
@@ -582,7 +618,7 @@ final_summary <- final_summary %>%
 
 # Save the summary to a CSV file
 output_csv <- file.path(out_dir, "chromatin_state_summary.csv")
-write_csv(final_summary, output_csv)
+readr::write_csv(final_summary, output_csv)
 
 ###############################################################################
 # detailed unknown cide 
@@ -597,6 +633,37 @@ output_csv <- file.path(out_dir, "chromatin_state_summary.csv")
 
 # Load the CSV file into a dataframe
 final_summary <- read_csv(output_csv)
+
+
+library(dplyr)
+
+usable_summary <- final_summary %>%
+  filter(as.character(Chromatin_State) %in% as.character(1:18)) %>%
+  group_by(Protein, ExperimentID, Biosample) %>%
+  summarize(
+    Chromatin_State = "Usable_1_18",
+    Count = sum(Count),
+    Percentage = sum(Percentage),
+    .groups = "drop"
+  ) %>%
+  select(Chromatin_State, Count, Percentage, Protein, ExperimentID, Biosample)
+
+final_summary <- bind_rows(
+  final_summary %>%
+    mutate(Chromatin_State = as.character(Chromatin_State)),
+  usable_summary
+) %>%
+  mutate(
+    Chromatin_State = factor(
+      Chromatin_State,
+      levels = c(as.character(1:18),
+                 "No motif in peak",
+                 "No CG in motif",
+                 "No State assignment for CG",
+                 "Usable_1_18")
+    )
+  )
+
 
 # Define chromatin state names and colors
 chromatin_state_colors <- c(
@@ -620,7 +687,9 @@ chromatin_state_colors <- c(
   "#000000",  # 18_Quies     -> Black
   "#FF69B4",  # No motif in peak -> Pink
   "#FF69B4",  # No CG in motif -> Dodger Blue
-  "#FF69B4"   # No State assignment for CG -> Lime Green
+  "#FF69B4",   # No State assignment for CG -> Lime Green,
+  "#1E90FF"  # "Usable_1_18"
+  
 )
 
 chromatin_state_labels <- c(
@@ -629,7 +698,7 @@ chromatin_state_labels <- c(
   "9_EnhA1", "10_EnhA2", "11_EnhWk", "12_ZNF_Rpts",
   "13_Het", "14_TssBiv", "15_EnhBiv", "16_ReprPC",
   "17_ReprPCWk", "18_Quies", 
-  "No motif in peak", "No CG in motif", "No State assignment for CG"
+  "No motif in peak", "No CG in motif", "No State assignment for CG","Usable_1_18"
 )
 
 # Ensure Chromatin_State is ordered
@@ -637,7 +706,7 @@ final_summary <- final_summary %>%
   mutate(
     Chromatin_State = factor(
       Chromatin_State,
-      levels = c(as.character(1:18), "No motif in peak", "No CG in motif", "No State assignment for CG")
+      levels = c(as.character(1:18), "No motif in peak", "No CG in motif", "No State assignment for CG","Usable_1_18")
     )
   )
 
@@ -656,11 +725,11 @@ outlier_summary <- final_summary %>%
 # Create final plot with outlier labels using ggrepel
 ggplot(outlier_summary, aes(x = Chromatin_State, y = Percentage, color = Chromatin_State)) +
   geom_jitter(width = 0.2, size = 2, alpha = 0.7) +  # Jitter points
-  geom_text_repel(
-    aes(label = Label), 
-    size = 3, color = "black", na.rm = TRUE, 
-    box.padding = 0.3, point.padding = 0.2, max.overlaps = Inf
-  ) +  # Repelling labels for outliers
+  # geom_text_repel(
+  #   aes(label = Label), 
+  #   size = 3, color = "black", na.rm = TRUE, 
+  #   box.padding = 0.3, point.padding = 0.2, max.overlaps = Inf
+  # ) +  # Repelling labels for outliers
   labs(
     title = "Chromatin State Percentage Distribution with Outliers",
     x = "Chromatin State",
