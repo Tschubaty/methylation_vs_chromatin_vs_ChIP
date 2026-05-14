@@ -771,6 +771,9 @@ ggplot(outlier_summary, aes(x = Chromatin_State, y = Percentage, color = Chromat
   ) +
   scale_y_continuous(labels = scales::percent_format(scale = 1))  # Format y-axis as percentage
 
+
+saveRDS(object = final_summary,file = "final_summary2.rds")
+
 ################################################################################
 # library(ggplot2)
 # library(ggrepel)
