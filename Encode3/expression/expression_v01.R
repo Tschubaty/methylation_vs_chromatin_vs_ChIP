@@ -43,7 +43,7 @@ library(data.table)
 ################################################ INPUT ###################################################
 
 # Define paths
-base_folder <- "D:/Users/Daniel Batyrev/Documents/GitHub/methylation_vs_chromatin_vs_ChIP/Encode3/expression"
+base_folder <- this.dir
 metadata_file <- file.path(base_folder, "metadata.tsv")
 data_folder <- file.path(base_folder, "rna-seq")
 

@@ -557,9 +557,16 @@ selected_transcripts <- unique(genes_in_data$transcript_id)
 plot_dir <- file.path(base_dir, "plots", "barplots_merged")
 if (!dir.exists(plot_dir)) dir.create(plot_dir, recursive = TRUE)
 
+#unique(expression_data_annotated$gene_name)
+#selected_transcripts
+
+genes_in_data <- expression_data_annotated
+selected_transcripts <- unique(genes_in_data$transcript_id)
+
+
 # 8) Generate barplots
-for (tx in selected_transcripts) {
-  
+for (tx in unique(selected_transcripts)) {
+  print(tx)
   # Subset expression
   sub_dt <- logCPM_long[transcript_id == tx]
   if (nrow(sub_dt) == 0) next
