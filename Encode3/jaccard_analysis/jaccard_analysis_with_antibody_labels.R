@@ -47,6 +47,26 @@ input_folder <- file.path(
 )
 output_folder <- file.path(this.dir)
 
+############################ Main-loop cache settings ############################
+
+# Set TRUE only if you want to redo the expensive protein/motif loop from scratch.
+force_run_main_jaccard_loop <- FALSE
+
+# If this summary already exists, the whole protein/motif loop can be skipped.
+main_jaccard_summary_csv <- file.path(
+  output_folder,
+  "ALL_PROTEINS_MOTIFS_jaccard_summary.csv"
+)
+
+# RDS version is better for later reuse inside R.
+main_jaccard_summary_rds <- file.path(
+  output_folder,
+  "ALL_PROTEINS_MOTIFS_jaccard_summary.rds"
+)
+
+main_jaccard_cache_available <- file.exists(main_jaccard_summary_rds) ||
+  file.exists(main_jaccard_summary_csv)
+
 # Antibody metadata file
 antibody_mapping_file <- file.path(
   dirname(this.dir),
@@ -190,11 +210,43 @@ protein_folders <- protein_folders[!grepl("sbatch_scripts|log", protein_folders)
 # Sort for consistency
 protein_folders <- sort(protein_folders)
 
-# Initialize list to store all results
-all_jaccard_results <- list()
+############################ Main-loop cache check ###############################
 
-# Loop over each protein (ChIP target)
-for (protein in protein_folders) {
+if (!force_run_main_jaccard_loop && main_jaccard_cache_available) {
+  
+  print("Global Jaccard summary already exists.")
+  print("Skipping entire protein/motif loop.")
+  print("BED files will NOT be read.")
+  print("Heatmaps will NOT be recreated.")
+  
+  if (file.exists(main_jaccard_summary_rds)) {
+    all_results_df <- readRDS(main_jaccard_summary_rds)
+  } else {
+    all_results_df <- readr::read_csv(
+      main_jaccard_summary_csv,
+      show_col_types = FALSE
+    ) %>%
+      as.data.frame()
+    
+    saveRDS(
+      all_results_df,
+      file = main_jaccard_summary_rds
+    )
+  }
+  
+  # Recreate this variable in case later code expects it.
+  all_jaccard_results <- split(all_results_df, seq_len(nrow(all_results_df)))
+  
+} else {
+  
+  print("No global Jaccard summary cache found, or recalculation forced.")
+  print("Running full protein/motif loop.")
+  
+  # Initialize list to store all results
+  all_jaccard_results <- list()
+  
+  # Loop over each protein (ChIP target)
+  for (protein in protein_folders) {
   # protein <- protein_folders[1]  # For debugging: run single protein
   
   print(paste("Processing protein:", protein))
@@ -296,142 +348,186 @@ for (protein in protein_folders) {
     )
     
     # Initialize Jaccard matrix
-    n_exp <- nrow(motif_files)
-    jaccard_matrix <- matrix(NA, nrow = n_exp, ncol = n_exp)
-    rownames(jaccard_matrix) <- motif_files$experiment_label
-    colnames(jaccard_matrix) <- motif_files$experiment_label
+    ######################## Load cached Jaccard or calculate ########################
     
-    # Read all peak data for this motif
-    peak_data <- list()
-    for (i in 1:nrow(motif_files)) {
-      bed_file_path <- file.path(input_folder, protein, motif_files$bed_file[i])
-      print(paste("    Reading:", motif_files$bed_file[i]))
+    jaccard_matrix_file <- file.path(protein_motif_dir, "jaccard_matrix.rds")
+    jaccard_table_file <- file.path(protein_motif_dir, "jaccard_table.csv")
+    jaccard_summary_file <- file.path(protein_motif_dir, "jaccard_summary.csv")
+    
+    cached_jaccard_available <- file.exists(jaccard_matrix_file) &&
+      file.exists(jaccard_table_file) &&
+      file.exists(jaccard_summary_file)
+    
+    if (cached_jaccard_available) {
       
-      peak_data[[i]] <- read_bed_file(bed_file_path)
-    }
-    
-    # Calculate pairwise Jaccard indices
-    print("    Calculating Jaccard indices...")
-    for (i in 1:n_exp) {
-      for (j in i:n_exp) {
-        # Extract only chr, start_peak, end_peak columns
-        peaks_i <- peak_data[[i]][, c("chr", "start_peak", "end_peak")]
-        peaks_j <- peak_data[[j]][, c("chr", "start_peak", "end_peak")]
-        
-        # Remove rows with missing values
-        peaks_i <- peaks_i[complete.cases(peaks_i), ]
-        peaks_j <- peaks_j[complete.cases(peaks_j), ]
-        
-        # Calculate Jaccard
-        jaccard_value <- calculate_jaccard_peaks_overlap(peaks_i, peaks_j)
-        
-        jaccard_matrix[i, j] <- jaccard_value
-        jaccard_matrix[j, i] <- jaccard_value  # Symmetric matrix
-      }
-    }
-    
-    # Save Jaccard matrix as RDS
-    saveRDS(
-      jaccard_matrix,
-      file = file.path(protein_motif_dir, "jaccard_matrix.rds")
-    )
-    
-    # Convert matrix to long format data frame
-    jaccard_df <- as.data.frame(jaccard_matrix)
-    jaccard_df$experiment_1 <- rownames(jaccard_matrix)
-    
-    experiment_lookup <- motif_files %>%
-      select(
-        experiment_label,
-        biosample,
-        experiment_id,
-        Antibody_Label,
-        Antibody_Accession,
-        Antibody_Title,
-        Antibody_Lot,
-        Antibody_Catalog,
-        Antibody_Lab,
-        Experiment_Lab
+      print("    Cached Jaccard files found. Loading saved results; BED files will NOT be read.")
+      
+      jaccard_matrix <- readRDS(jaccard_matrix_file)
+      
+      jaccard_long <- readr::read_csv(
+        jaccard_table_file,
+        show_col_types = FALSE,
+        col_types = readr::cols(
+          .default = readr::col_character(),
+          jaccard_index = readr::col_double(),
+          same_biosample = readr::col_logical(),
+          same_antibody = readr::col_logical()
+        )
       )
-    
-    jaccard_long <- jaccard_df %>%
-      tidyr::pivot_longer(
-        cols = -experiment_1,
-        names_to = "experiment_2",
-        values_to = "jaccard_index"
+      
+      summary_stats <- readr::read_csv(
+        jaccard_summary_file,
+        show_col_types = FALSE
       ) %>%
-      dplyr::filter(experiment_1 < experiment_2) %>%
-      dplyr::left_join(
-        experiment_lookup,
-        by = c("experiment_1" = "experiment_label")
-      ) %>%
-      dplyr::rename(
-        biosample_1 = biosample,
-        experiment_id_1 = experiment_id,
-        antibody_label_1 = Antibody_Label,
-        antibody_accession_1 = Antibody_Accession,
-        antibody_title_1 = Antibody_Title,
-        antibody_lot_1 = Antibody_Lot,
-        antibody_catalog_1 = Antibody_Catalog,
-        antibody_lab_1 = Antibody_Lab,
-        experiment_lab_1 = Experiment_Lab
-      ) %>%
-      dplyr::left_join(
-        experiment_lookup,
-        by = c("experiment_2" = "experiment_label")
-      ) %>%
-      dplyr::rename(
-        biosample_2 = biosample,
-        experiment_id_2 = experiment_id,
-        antibody_label_2 = Antibody_Label,
-        antibody_accession_2 = Antibody_Accession,
-        antibody_title_2 = Antibody_Title,
-        antibody_lot_2 = Antibody_Lot,
-        antibody_catalog_2 = Antibody_Catalog,
-        antibody_lab_2 = Antibody_Lab,
-        experiment_lab_2 = Experiment_Lab
-      ) %>%
-      dplyr::mutate(
-        same_biosample = biosample_1 == biosample_2,
-        same_antibody = antibody_label_1 == antibody_label_2
-      ) %>%
-      dplyr::arrange(dplyr::desc(jaccard_index))
-    
-    # Save as CSV
-    write.csv(
-      jaccard_long,
-      file = file.path(protein_motif_dir, "jaccard_table.csv"),
-      row.names = FALSE
-    )
-    
-    # Calculate summary statistics
-    jaccard_values <- jaccard_matrix[upper.tri(jaccard_matrix)]
-    jaccard_values <- jaccard_values[!is.na(jaccard_values)]
-    
-    same_antibody_values <- jaccard_long$jaccard_index[jaccard_long$same_antibody]
-    different_antibody_values <- jaccard_long$jaccard_index[!jaccard_long$same_antibody]
-    
-    summary_stats <- data.frame(
-      protein = protein,
-      motif = motif,
-      n_experiments = n_exp,
-      n_antibodies = length(unique(motif_files$Antibody_Label)),
-      n_pairwise_comparisons = length(jaccard_values),
-      mean_jaccard = mean(jaccard_values, na.rm = TRUE),
-      median_jaccard = median(jaccard_values, na.rm = TRUE),
-      min_jaccard = min(jaccard_values, na.rm = TRUE),
-      max_jaccard = max(jaccard_values, na.rm = TRUE),
-      sd_jaccard = sd(jaccard_values, na.rm = TRUE),
-      mean_jaccard_same_antibody = ifelse(length(same_antibody_values) > 0, mean(same_antibody_values, na.rm = TRUE), NA),
-      mean_jaccard_different_antibody = ifelse(length(different_antibody_values) > 0, mean(different_antibody_values, na.rm = TRUE), NA),
-      stringsAsFactors = FALSE
-    )
-    
-    write.csv(
-      summary_stats,
-      file = file.path(protein_motif_dir, "jaccard_summary.csv"),
-      row.names = FALSE
-    )
+        as.data.frame()
+      
+    } else {
+      
+      print("    Cached Jaccard files not found, or recalculation forced. Reading BED files now.")
+      
+      # Initialize Jaccard matrix
+      n_exp <- nrow(motif_files)
+      jaccard_matrix <- matrix(NA, nrow = n_exp, ncol = n_exp)
+      rownames(jaccard_matrix) <- motif_files$experiment_label
+      colnames(jaccard_matrix) <- motif_files$experiment_label
+      
+      # Read all peak data for this motif
+      peak_data <- list()
+      for (i in 1:nrow(motif_files)) {
+        bed_file_path <- file.path(input_folder, protein, motif_files$bed_file[i])
+        print(paste("    Reading:", motif_files$bed_file[i]))
+        
+        peak_data[[i]] <- read_bed_file(bed_file_path)
+      }
+      
+      # Calculate pairwise Jaccard indices
+      print("    Calculating Jaccard indices...")
+      for (i in 1:n_exp) {
+        for (j in i:n_exp) {
+          
+          peaks_i <- peak_data[[i]][, c("chr", "start_peak", "end_peak")]
+          peaks_j <- peak_data[[j]][, c("chr", "start_peak", "end_peak")]
+          
+          peaks_i <- peaks_i[complete.cases(peaks_i), ]
+          peaks_j <- peaks_j[complete.cases(peaks_j), ]
+          
+          jaccard_value <- calculate_jaccard_peaks_overlap(peaks_i, peaks_j)
+          
+          jaccard_matrix[i, j] <- jaccard_value
+          jaccard_matrix[j, i] <- jaccard_value
+        }
+      }
+      
+      # Save Jaccard matrix as RDS
+      saveRDS(
+        jaccard_matrix,
+        file = jaccard_matrix_file
+      )
+      
+      # Convert matrix to long format data frame
+      jaccard_df <- as.data.frame(jaccard_matrix)
+      jaccard_df$experiment_1 <- rownames(jaccard_matrix)
+      
+      experiment_lookup <- motif_files %>%
+        select(
+          experiment_label,
+          biosample,
+          experiment_id,
+          Antibody_Label,
+          Antibody_Accession,
+          Antibody_Title,
+          Antibody_Lot,
+          Antibody_Catalog,
+          Antibody_Lab,
+          Experiment_Lab
+        )
+      
+      jaccard_long <- jaccard_df %>%
+        tidyr::pivot_longer(
+          cols = -experiment_1,
+          names_to = "experiment_2",
+          values_to = "jaccard_index"
+        ) %>%
+        dplyr::filter(experiment_1 < experiment_2) %>%
+        dplyr::left_join(
+          experiment_lookup,
+          by = c("experiment_1" = "experiment_label")
+        ) %>%
+        dplyr::rename(
+          biosample_1 = biosample,
+          experiment_id_1 = experiment_id,
+          antibody_label_1 = Antibody_Label,
+          antibody_accession_1 = Antibody_Accession,
+          antibody_title_1 = Antibody_Title,
+          antibody_lot_1 = Antibody_Lot,
+          antibody_catalog_1 = Antibody_Catalog,
+          antibody_lab_1 = Antibody_Lab,
+          experiment_lab_1 = Experiment_Lab
+        ) %>%
+        dplyr::left_join(
+          experiment_lookup,
+          by = c("experiment_2" = "experiment_label")
+        ) %>%
+        dplyr::rename(
+          biosample_2 = biosample,
+          experiment_id_2 = experiment_id,
+          antibody_label_2 = Antibody_Label,
+          antibody_accession_2 = Antibody_Accession,
+          antibody_title_2 = Antibody_Title,
+          antibody_lot_2 = Antibody_Lot,
+          antibody_catalog_2 = Antibody_Catalog,
+          antibody_lab_2 = Antibody_Lab,
+          experiment_lab_2 = Experiment_Lab
+        ) %>%
+        dplyr::mutate(
+          same_biosample = biosample_1 == biosample_2,
+          same_antibody = antibody_label_1 == antibody_label_2
+        ) %>%
+        dplyr::arrange(dplyr::desc(jaccard_index))
+      
+      write.csv(
+        jaccard_long,
+        file = jaccard_table_file,
+        row.names = FALSE
+      )
+      
+      # Calculate summary statistics
+      jaccard_values <- jaccard_matrix[upper.tri(jaccard_matrix)]
+      jaccard_values <- jaccard_values[!is.na(jaccard_values)]
+      
+      same_antibody_values <- jaccard_long$jaccard_index[jaccard_long$same_antibody]
+      different_antibody_values <- jaccard_long$jaccard_index[!jaccard_long$same_antibody]
+      
+      summary_stats <- data.frame(
+        protein = protein,
+        motif = motif,
+        n_experiments = n_exp,
+        n_antibodies = length(unique(motif_files$Antibody_Label)),
+        n_pairwise_comparisons = length(jaccard_values),
+        mean_jaccard = mean(jaccard_values, na.rm = TRUE),
+        median_jaccard = median(jaccard_values, na.rm = TRUE),
+        min_jaccard = min(jaccard_values, na.rm = TRUE),
+        max_jaccard = max(jaccard_values, na.rm = TRUE),
+        sd_jaccard = sd(jaccard_values, na.rm = TRUE),
+        mean_jaccard_same_antibody = ifelse(
+          length(same_antibody_values) > 0,
+          mean(same_antibody_values, na.rm = TRUE),
+          NA
+        ),
+        mean_jaccard_different_antibody = ifelse(
+          length(different_antibody_values) > 0,
+          mean(different_antibody_values, na.rm = TRUE),
+          NA
+        ),
+        stringsAsFactors = FALSE
+      )
+      
+      write.csv(
+        summary_stats,
+        file = jaccard_summary_file,
+        row.names = FALSE
+      )
+    }
     
     # Generate heatmap
     png(
@@ -533,7 +629,15 @@ if (length(all_jaccard_results) > 0) {
   print(paste("Overall range:", 
               round(min(all_results_df$min_jaccard), 4), "-",
               round(max(all_results_df$max_jaccard), 4)))
+  
+  # Save RDS cache so future runs can skip the entire main loop
+  saveRDS(
+    all_results_df,
+    file = main_jaccard_summary_rds
+  )
 }
+  
+} # closes: if cached summary exists, skip loop; else run full main loop
 
 end_script <- Sys.time()
 print(paste("Total runtime:", round(difftime(end_script, start_script, units = "mins"), 2), "minutes"))

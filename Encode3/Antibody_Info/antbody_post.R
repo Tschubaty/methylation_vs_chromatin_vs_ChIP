@@ -29,7 +29,6 @@ library(tidyr)
 library(ggplot2)
 
 
-
 # Define project folders
 setwd(this.dir)
 base_dir <- dirname(this.dir)
