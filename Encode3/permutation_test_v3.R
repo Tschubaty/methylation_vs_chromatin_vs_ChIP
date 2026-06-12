@@ -194,7 +194,9 @@ cl <- makeCluster(num_cores)
 registerDoParallel(cl)
 
 stratified_test <- list()
-n_permutations <- 100000
+n_permutations <- 10000 #
+
+# protein_folders <- protein_folders[1:4]
 
 # Loop over each protein
 for (protein in protein_folders) {
