@@ -9,7 +9,7 @@
 ##         Located in Encode3/meme/fimo_single_experiments_on_known_motif_and_peaks_add_methylation_v3/
 ##
 ##  Output: Results with full metadata saved in:
-##          Encode3/permutation_test_v3/
+##          Encode3/permutation_test_v4/
 ##
 ##  Version: 10.01.2025
 ##  Author: Daniel Batyrev (777634015)
@@ -50,7 +50,7 @@ input_folder <- file.path(
   "meme",
   "fimo_single_experiments_on_known_motif_and_peaks_add_methylation_v3"
 )
-output_folder <- file.path(this.dir, "permutation_test_v3")
+output_folder <- file.path(this.dir, "permutation_test_v4")
 
 # Create output directory if it doesn't exist
 if (!dir.exists(output_folder)) {
@@ -544,42 +544,129 @@ for (protein in protein_folders) {
           
           if (file.exists(permuted_file)) {
             
-            # Read existing permutation distribution if already calculated
+            
+            # If the permutation file already exists, do not rerun permutations.
+            # Just read the existing permutation distribution from disk.
+            cat(sprintf(
+              "      State %d: Found existing permutation file. Reading cached distribution: %s\n",
+              state_i,
+              basename(permuted_file)
+            ))
+            
             permuted_stratified_S_df <- read.csv(permuted_file)
             permuted_S_values <- permuted_stratified_S_df$S_statistic
+            
+            cat(sprintf(
+              "      State %d: Loaded %d cached permutations.\n",
+              state_i,
+              length(permuted_S_values)
+            ))
+            
             
           } else {
             
             cat(sprintf("      State %d: Running %d permutations...\n", state_i, n_permutations))
             p_start_time <- Sys.time()
             
-            pb <- txtProgressBar(max = n_permutations, style = 3)
-            opts <- list(progress = function(n) setTxtProgressBar(pb, n))
-            
+            # Precompute constants used in every permutation.
             sum_total <- sum(diff_excl)
             n_excl <- length(diff_excl)
             
+            # ============================================================
+            # Chunked parallel permutation
+            # ============================================================
+            #
+            # Instead of starting one foreach task per permutation,
+            # we start fewer larger tasks.
+            #
+            # Example:
+            #   n_permutations = 100000
+            #   num_cores = 15
+            #   chunks_per_core = 8
+            #
+            # Then:
+            #   n_chunks = 15 * 8 = 120 chunks
+            #
+            # Each worker receives a chunk and performs many permutations locally.
+            # This strongly reduces foreach / parallel scheduling overhead.
+            #
+            # The full permutation distribution is still saved:
+            #   length(permuted_S_values) == n_permutations
+            
+            chunks_per_core <- 8L
+            
+            n_chunks <- min(
+              n_permutations,
+              max(1L, num_cores * chunks_per_core)
+            )
+            
+            # Split n_permutations as evenly as possible across chunks.
+            chunk_sizes <- rep(
+              floor(n_permutations / n_chunks),
+              n_chunks
+            )
+            
+            # Distribute the remaining permutations across the first chunks.
+            remainder <- n_permutations %% n_chunks
+            
+            if (remainder > 0) {
+              chunk_sizes[seq_len(remainder)] <- chunk_sizes[seq_len(remainder)] + 1L
+            }
+            
+            # cat(sprintf(
+            #   "      Using %d cores, %d chunks, ~%.1f permutations per chunk\n",
+            #   num_cores,
+            #   n_chunks,
+            #   mean(chunk_sizes)
+            # ))
+            
+            # Progress bar now tracks chunks, not individual permutations.
+            pb <- txtProgressBar(max = n_chunks, style = 3)
+            opts <- list(progress = function(n) setTxtProgressBar(pb, n))
+            
             permuted_S_values <- foreach(
-              i = 1:n_permutations,
+              chunk_n = chunk_sizes,
               .combine = 'c',
               .options.snow = opts
             ) %dopar% {
               
-              # Randomly choose n1_perm CpGs for the permuted biosample1-only group.
-              idx_group1 <- sample.int(n_excl, n1_perm)
+              # Store the full S distribution for this chunk.
+              # These values are combined across chunks by foreach(.combine = 'c').
+              out <- numeric(chunk_n)
               
-              # Sum for permuted biosample1-only group.
-              sum_group1 <- sum(diff_excl[idx_group1])
+              for (j in seq_len(chunk_n)) {
+                
+                # Randomly choose CpGs for the permuted biosample1-only group.
+                # This is equivalent to shuffling the two exclusive labels,
+                # but avoids creating a permuted character-label vector.
+                idx_group1 <- sample.int(n_excl, n1_perm)
+                
+                # Sum for permuted biosample1-only group.
+                sum_group1 <- sum(diff_excl[idx_group1])
+                
+                # Sum for permuted biosample2-only group.
+                # Since group2 is the complement of group1, we do not need
+                # to create or sample group2 explicitly.
+                sum_group2 <- sum_total - sum_group1
+                
+                # Store permuted S statistic.
+                out[j] <- (sum_group1 / n1_perm) - (sum_group2 / n2_perm)
+              }
               
-              # Sum for permuted biosample2-only group.
-              # This avoids creating diff_excl[-idx_group1].
-              sum_group2 <- sum_total - sum_group1
-              
-              # Permuted S statistic.
-              (sum_group1 / n1_perm) - (sum_group2 / n2_perm)
+              out
             }
             
             close(pb)
+            
+            # Safety check: make sure the full permutation distribution was created.
+            if (length(permuted_S_values) != n_permutations) {
+              stop(sprintf(
+                "Permutation length mismatch: expected %d but got %d",
+                n_permutations,
+                length(permuted_S_values)
+              ))
+            }
+            
             elapsed <- difftime(Sys.time(), p_start_time, units = "secs")
             cat(sprintf("Completed in %.1f seconds\n", elapsed))
             
