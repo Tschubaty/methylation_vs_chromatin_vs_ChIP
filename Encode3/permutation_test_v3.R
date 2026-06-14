@@ -173,6 +173,10 @@ print(paste("Summary generation completed in", round(
 
 ############################## Permutation Test #############################
 
+# Start time for the script
+start_script <- Sys.time()
+
+
 # Function to calculate S_statistic for a given data frame
 calculate_S_statistic <- function(df, biosample_comb) {
   mean_diff_per_sample <- df %>%
@@ -188,18 +192,25 @@ calculate_S_statistic <- function(df, biosample_comb) {
   return(S_statistic)
 }
 
-# Set up the parallel backend
+# CURRENT (no progress):
+# num_cores <- detectCores() - 1
+# cl <- makeCluster(num_cores)
+# registerDoParallel(cl)
+
+# NEW (with progress support):
+library(doSNOW)
 num_cores <- detectCores() - 1
-cl <- makeCluster(num_cores)
-registerDoParallel(cl)
+cl <- makeCluster(num_cores, type = "SOCK")
+registerDoSNOW(cl)
 
 stratified_test <- list()
-n_permutations <- 10000 #
+n_permutations <- 100000 #
 
-# protein_folders <- protein_folders[1:4]
+protein_folders <- protein_folders[1:4]
 
 # Loop over each protein
 for (protein in protein_folders) {
+  #protein <- protein_folders[1]
   print(paste("=== Processing protein:", protein, "==="))
   
   protein_data <- summary_df[summary_df$protein == protein, ]
@@ -209,6 +220,7 @@ for (protein in protein_folders) {
   protein_output_dir <- file.path(output_folder, protein)
   
   for (motif in unique_motifs) {
+    # motif <- unique_motifs[1]
     print(paste("Motif:", motif))
     motif_data <- protein_data[protein_data$motif == motif, ]
     
@@ -219,14 +231,34 @@ for (protein in protein_folders) {
       next
     }
     
-    # Get all pairwise experiment combinations
+    # Get all pairwise experiment combinations.
+    # Important: only compare experiments from DIFFERENT biosamples.
+    # We do not compare K562-vs-K562, HepG2-vs-HepG2, etc.,
+    # because methylation values are sample-specific and would be identical
+    # on both sides of the comparison.
     motif_rows <- 1:nrow(motif_data)
+    
     experiment_pairs <- combn(motif_rows, 2, simplify = FALSE)
+    
+    experiment_pairs <- experiment_pairs[
+      sapply(experiment_pairs, function(pair) {
+        biosample_a <- motif_data$biosample[pair[1]]
+        biosample_b <- motif_data$biosample[pair[2]]
+        biosample_a != biosample_b
+      })
+    ]
+    
+    # If no valid cross-biosample pairs remain, skip this motif.
+    if (length(experiment_pairs) == 0) {
+      print(paste("  Skip: no cross-biosample experiment pairs for", protein, motif))
+      next
+    }
     
     motif_out_dir <- file.path(protein_output_dir, motif)
     
     # Loop through each experiment pair
     for (pair_idx in seq_along(experiment_pairs)) {
+      # pair_idx <- seq_along(experiment_pairs)[1]
       pair <- experiment_pairs[[pair_idx]]
       idx1 <- pair[1]
       idx2 <- pair[2]
@@ -357,62 +389,146 @@ for (protein in protein_folders) {
       chromatin_state_col2 <- paste0("Chromatin_State_", biosample2)
       
       for (state_i in 1:18) {
-        # Filter for same chromatin state
+        # state_i <- 1
+        # Filter CpGs where BOTH biosamples are in the same chromatin state.
+        # Even if this gives zero rows, we will still write an output row.
         current_df <- merged_df %>%
           dplyr::filter(
             !!sym(chromatin_state_col1) == state_i,
             !!sym(chromatin_state_col2) == state_i
           )
         
-        if (nrow(current_df) == 0) {
-          next  # Skip if no data for this state
-        }
-        
+        # Count how many CpGs belong to biosample1-only, biosample2-only, and both.
+        # If current_df is empty, all counts will correctly become 0.
         sample_counts <- table(current_df$sample)
         
-        # Skip if fewer than 3 samples (need both biosamples + combined)
-        if (length(sample_counts) < 3) {
-          next
-        }
+        n_sample1 <- as.numeric(ifelse(
+          biosample1 %in% names(sample_counts),
+          sample_counts[biosample1],
+          0
+        ))
         
-        # Calculate observed S statistic
-        observed_S_statistic <- calculate_S_statistic(current_df, biosample_comb)
+        n_sample2 <- as.numeric(ifelse(
+          biosample2 %in% names(sample_counts),
+          sample_counts[biosample2],
+          0
+        ))
         
-        # Permutation test with caching
-        permuted_file <- file.path(
-          pair_out_dir,
-          paste0("permuted_stratified_S_df_state_", state_i, ".csv")
-        )
+        n_both <- as.numeric(ifelse(
+          biosample_both %in% names(sample_counts),
+          sample_counts[biosample_both],
+          0
+        ))
         
-        if (file.exists(permuted_file)) {
-          permuted_stratified_S_df <- read.csv(permuted_file)
-          permuted_S_values <- permuted_stratified_S_df$S_statistic
-        } else {
-          permuted_S_values <- foreach(
-            i = 1:n_permutations,
-            .combine = 'c',
-            .packages = c('dplyr', 'rlang')
-          ) %dopar% {
-            current_df %>%
-              dplyr::group_by(
-                !!sym(chromatin_state_col1),
-                !!sym(chromatin_state_col2)
-              ) %>%
-              dplyr::mutate(sample = sample(sample)) %>%
-              dplyr::ungroup() %>%
-              calculate_S_statistic(biosample_comb)
+        # Default values.
+        # These stay NA unless the state has enough data to run the permutation test.
+        observed_S_statistic <- NA_real_
+        p_value_S_bigger <- NA_real_
+        p_value_S_smaller <- NA_real_
+        p_value_two_sided <- NA_real_
+        
+        # Add a status column so you can later see WHY a row has NA statistics.
+        test_status <- NA_character_
+        
+        # Case 1: no CpGs in this chromatin state.
+        if (nrow(current_df) == 0) {
+          
+          test_status <- "no_CpGs_in_state"
+          
+        } else if (n_sample1 == 0 || n_sample2 == 0 || n_both == 0) {
+          
+          # Case 2: CpGs exist, but not all three required groups are present:
+          # 1. biosample1-only CpGs
+          # 2. biosample2-only CpGs
+          # 3. CpGs shared by both experiments
+          #
+          # In this case the S statistic should not be calculated.
+          
+          missing_groups <- c()
+          
+          if (n_sample1 == 0) {
+            missing_groups <- c(missing_groups, paste0("missing_", biosample1, "_only"))
           }
           
-          # Save permutation distribution
-          permuted_stratified_S_df <- data.frame(S_statistic = permuted_S_values)
-          write.csv(permuted_stratified_S_df, permuted_file, row.names = FALSE)
+          if (n_sample2 == 0) {
+            missing_groups <- c(missing_groups, paste0("missing_", biosample2, "_only"))
+          }
+          
+          if (n_both == 0) {
+            missing_groups <- c(missing_groups, paste0("missing_", biosample1, "_", biosample2, "_shared"))
+          }
+          
+          test_status <- paste(missing_groups, collapse = ";")
+          
+        } else {
+          
+          # Case 3: enough data exists, so calculate observed statistic
+          # and run/read the permutation test.
+          test_status <- "tested"
+          
+          # Calculate observed S statistic
+          observed_S_statistic <- calculate_S_statistic(current_df, biosample_comb)
+          
+          # Include the number of permutations in the file name,
+          # so old 100-permutation files are not reused for 100k runs.
+          permuted_file <- file.path(
+            pair_out_dir,
+            paste0("permuted_stratified_S_df_state_", state_i, "_nperm_", n_permutations, ".csv")
+          )
+          
+          if (file.exists(permuted_file)) {
+            
+            # Read existing permutation distribution if already calculated
+            permuted_stratified_S_df <- read.csv(permuted_file)
+            permuted_S_values <- permuted_stratified_S_df$S_statistic
+            
+          } else {
+            
+            cat(sprintf("      State %d: Running %d permutations...\n", state_i, n_permutations))
+            p_start_time <- Sys.time()
+            
+            pb <- txtProgressBar(max = n_permutations, style = 3)
+            opts <- list(progress = function(n) setTxtProgressBar(pb, n))
+            
+            permuted_S_values <- foreach(
+              i = 1:n_permutations,
+              .combine = 'c',
+              .packages = c('dplyr', 'rlang'),
+              .options.snow = opts
+            ) %dopar% {
+              
+              # Shuffle sample labels within chromatin-state groups
+              # and recalculate the S statistic.
+              current_df %>%
+                dplyr::group_by(
+                  !!sym(chromatin_state_col1),
+                  !!sym(chromatin_state_col2)
+                ) %>%
+                dplyr::mutate(sample = sample(sample)) %>%
+                dplyr::ungroup() %>%
+                calculate_S_statistic(biosample_comb)
+            }
+            
+            close(pb)
+            elapsed <- difftime(Sys.time(), p_start_time, units = "secs")
+            cat(sprintf("Completed in %.1f seconds\n", elapsed))
+            
+            # Save permutation distribution for later reuse
+            permuted_stratified_S_df <- data.frame(S_statistic = permuted_S_values)
+            write.csv(permuted_stratified_S_df, permuted_file, row.names = FALSE)
+          }
+          
+          # Calculate empirical p-values
+          p_value_S_bigger <- mean(permuted_S_values >= observed_S_statistic)
+          p_value_S_smaller <- mean(permuted_S_values <= observed_S_statistic)
+          
+          # Two-sided empirical p-value.
+          # min(1, ...) prevents values above 1.
+          p_value_two_sided <- min(1, 2 * min(p_value_S_bigger, p_value_S_smaller))
         }
         
-        # Calculate p-values
-        p_value_S_bigger <- mean(permuted_S_values >= observed_S_statistic)
-        p_value_S_smaller <- mean(permuted_S_values <= observed_S_statistic)
-        
-        # Append result row with FULL ANNOTATION
+        # Always append one row per chromatin state.
+        # If the test could not be run, counts are still saved and statistics stay NA.
         stratified_test[[length(stratified_test) + 1]] <- data.frame(
           protein = protein,
           motif = motif,
@@ -429,21 +545,22 @@ for (protein in protein_folders) {
           bed_file2 = bed_file2,
           
           # Sample counts
-          n_sample1 = as.numeric(ifelse(biosample1 %in% names(sample_counts),
-                                        sample_counts[biosample1], 0)),
-          n_sample2 = as.numeric(ifelse(biosample2 %in% names(sample_counts),
-                                        sample_counts[biosample2], 0)),
-          n_both = as.numeric(ifelse(biosample_both %in% names(sample_counts),
-                                     sample_counts[biosample_both], 0)),
+          n_sample1 = n_sample1,
+          n_sample2 = n_sample2,
+          n_both = n_both,
           
           # Test results
           observed_S_statistic = observed_S_statistic,
           p_value_S_bigger = p_value_S_bigger,
           p_value_S_smaller = p_value_S_smaller,
-          p_value_two_sided = 2 * min(p_value_S_bigger, p_value_S_smaller),
+          p_value_two_sided = p_value_two_sided,
+          
+          # Reason why test was / was not run
+          test_status = test_status,
           
           stringsAsFactors = FALSE
         )
+        
       } # end state loop
     } # end experiment pair loop
   } # end motif loop
@@ -456,14 +573,20 @@ stopCluster(cl)
 stratified_test_df <- do.call(rbind, stratified_test)
 rownames(stratified_test_df) <- NULL
 
-saveRDS(stratified_test_df,
-        file = file.path(output_folder, "stratified_test_all_pairs_100k.rds"))
+# Create dynamic output file names based on the number of permutations
+output_prefix <- paste0("stratified_test_all_pairs_", n_permutations, "perm")
+
+# Save as RDS
+saveRDS(
+  stratified_test_df,
+  file = file.path(output_folder, paste0(output_prefix, ".rds"))
+)
 
 # Save as Excel
 if (require("openxlsx")) {
   openxlsx::write.xlsx(
     stratified_test_df,
-    file = file.path(output_folder, "stratified_test_all_pairs_100k.xlsx"),
+    file = file.path(output_folder, paste0(output_prefix, ".xlsx")),
     overwrite = TRUE
   )
 }
