@@ -176,81 +176,36 @@ print(paste("Summary generation completed in", round(
 # Start time for the script
 start_script <- Sys.time()
 
-
-# # Function to calculate S_statistic for a given data frame
-# calculate_S_statistic <- function(df, biosample_comb) {
-#   mean_diff_per_sample <- df %>%
-#     mutate(diff_fRead = !!sym(paste0("fRead_", biosample_comb[1])) -
-#              !!sym(paste0("fRead_", biosample_comb[2]))) %>%
-#     group_by(sample) %>%
-#     summarize(mean_diff = mean(diff_fRead, na.rm = TRUE), .groups = "drop")
-#   
-#   # Calculate the S statistic
-#   S_statistic <- mean_diff_per_sample$mean_diff[biosample_comb[1] == mean_diff_per_sample$sample] -
-#     mean_diff_per_sample$mean_diff[biosample_comb[2] == mean_diff_per_sample$sample]
-#   
-#   return(S_statistic)
-# }
-
-# Fast function to calculate the S statistic from vectors only.
+# Fast S statistic using only the two exclusive groups.
 #
 # Input:
-#   diff_fRead:
-#     Numeric vector with one methylation difference per CpG.
-#     Example:
-#       fRead_HepG2 - fRead_K562
+#   diff_excl:
+#     Numeric methylation-difference vector for CpGs that belong to
+#     biosample1-only or biosample2-only groups.
 #
-#   sample_labels:
-#     Character vector with one label per CpG.
-#     Example:
-#       "HepG2", "K562", "HepG2_K562"
+#   label_excl:
+#     Labels for diff_excl. Must contain only biosample1 and biosample2 labels.
 #
 #   label1:
-#     Label for CpGs bound only in biosample 1.
-#     Example:
-#       "HepG2"
+#     biosample1-only label, for example "HepG2"
 #
 #   label2:
-#     Label for CpGs bound only in biosample 2.
-#     Example:
-#       "K562"
-#
-# The function ignores all other labels, including the shared/both group.
+#     biosample2-only label, for example "K562"
 #
 # Statistic:
-#   S = mean(diff_fRead for label1 CpGs) -
-#       mean(diff_fRead for label2 CpGs)
-#
-# Biological meaning:
-#   This asks whether the methylation difference between the two biosamples
-#   is stronger in CpGs bound only in biosample 1 than in CpGs bound only
-#   in biosample 2.
-calculate_S_statistic_from_vectors <- function(diff_fRead, sample_labels, label1, label2) {
+#   S = mean(diff_excl[label1]) - mean(diff_excl[label2])
+calculate_S_statistic_exclusive <- function(diff_excl, label_excl, label1, label2) {
   
-  # Mean methylation difference for CpGs bound only in biosample 1
-  mean_diff_label1 <- mean(
-    diff_fRead[sample_labels == label1],
-    na.rm = TRUE
-  )
+  mean_1 <- mean(diff_excl[label_excl == label1], na.rm = TRUE)
+  mean_2 <- mean(diff_excl[label_excl == label2], na.rm = TRUE)
   
-  # Mean methylation difference for CpGs bound only in biosample 2
-  mean_diff_label2 <- mean(
-    diff_fRead[sample_labels == label2],
-    na.rm = TRUE
-  )
-  
-  # If one group is missing or contains only NA values,
-  # mean(..., na.rm = TRUE) returns NaN.
-  # In that case return NA instead of a broken statistic.
-  if (is.nan(mean_diff_label1) || is.nan(mean_diff_label2)) {
+  if (is.nan(mean_1) || is.nan(mean_2)) {
     return(NA_real_)
   }
   
-  # S statistic
-  S_statistic <- mean_diff_label1 - mean_diff_label2
-  
-  return(S_statistic)
+  mean_1 - mean_2
 }
+
 
 # CURRENT (no progress):
 # num_cores <- detectCores() - 1
@@ -267,7 +222,7 @@ stratified_test <- list()
 n_permutations <- 100000 #
 min_n_per_group <- 10
 
-#protein_folders <- protein_folders[1:4]
+#protein_folders <- protein_folders[4:5]
 
 # Loop over each protein
 for (protein in protein_folders) {
@@ -544,26 +499,38 @@ for (protein in protein_folders) {
           # and run/read the permutation test.
           test_status <- "tested"
           
-          # Calculate observed S statistic
-          #observed_S_statistic <- calculate_S_statistic(current_df, biosample_comb)
-          
-          # Precompute methylation difference once.
-          # This is much faster than recalculating it inside every permutation.
+          # Precompute methylation difference once for this chromatin state.
+          # One value per CpG:
+          #   fRead_biosample1 - fRead_biosample2
           diff_fRead <- current_df[[paste0("fRead_", biosample1)]] -
             current_df[[paste0("fRead_", biosample2)]]
           
           # Store ChIP-binding group labels once.
-          # Example labels:
-          #   biosample1-only: "HepG2"
-          #   biosample2-only: "K562"
-          #   shared/both:     "HepG2_K562"
           sample_labels <- current_df$sample
           
-          # Calculate observed S statistic using only the two exclusive groups.
-          # The shared/both group is ignored by the function.
-          observed_S_statistic <- calculate_S_statistic_from_vectors(
-            diff_fRead = diff_fRead,
-            sample_labels = sample_labels,
+          # Keep only the two exclusive groups used by the S statistic.
+          # The shared/both group is ignored by the current statistic.
+          exclusive_idx <- sample_labels %in% c(biosample1, biosample2)
+          
+          # Remove shared/both CpGs before the permutation.
+          diff_excl <- diff_fRead[exclusive_idx]
+          label_excl <- sample_labels[exclusive_idx]
+          
+          # Remove rows with NA methylation differences.
+          # This keeps the permutation vector clean and avoids repeated na.rm work.
+          valid_excl <- !is.na(diff_excl)
+          
+          diff_excl <- diff_excl[valid_excl]
+          label_excl <- label_excl[valid_excl]
+          
+          # Count the two exclusive groups.
+          n1_perm <- sum(label_excl == biosample1)
+          n2_perm <- sum(label_excl == biosample2)
+          
+          # Observed S statistic.
+          observed_S_statistic <- calculate_S_statistic_exclusive(
+            diff_excl = diff_excl,
+            label_excl = label_excl,
             label1 = biosample1,
             label2 = biosample2
           )
@@ -589,38 +556,27 @@ for (protein in protein_folders) {
             pb <- txtProgressBar(max = n_permutations, style = 3)
             opts <- list(progress = function(n) setTxtProgressBar(pb, n))
             
+            sum_total <- sum(diff_excl)
+            n_excl <- length(diff_excl)
+            
             permuted_S_values <- foreach(
               i = 1:n_permutations,
               .combine = 'c',
-              .options.snow = opts,
-              .export = c("calculate_S_statistic_from_vectors")
+              .options.snow = opts
             ) %dopar% {
               
-              # Shuffle sample labels within chromatin-state groups
-              # and recalculate the S statistic.
-              # Copy original labels
-              sample_perm <- sample_labels
+              # Randomly choose n1_perm CpGs for the permuted biosample1-only group.
+              idx_group1 <- sample.int(n_excl, n1_perm)
               
-              # Identify only the two exclusive binding groups.
-              # The shared/both group is not used by the S statistic,
-              # so we do not need to shuffle it.
-              exclusive_idx <- sample_perm %in% c(biosample1, biosample2)
+              # Sum for permuted biosample1-only group.
+              sum_group1 <- sum(diff_excl[idx_group1])
               
-              # Shuffle only biosample1-only and biosample2-only labels.
-              # This preserves:
-              #   - the number of biosample1-only CpGs
-              #   - the number of biosample2-only CpGs
-              #   - all shared/both labels unchanged
-              sample_perm[exclusive_idx] <- sample(sample_perm[exclusive_idx])
+              # Sum for permuted biosample2-only group.
+              # This avoids creating diff_excl[-idx_group1].
+              sum_group2 <- sum_total - sum_group1
               
-              # Calculate permuted S statistic from the same methylation-difference vector
-              # and the shuffled labels.
-              calculate_S_statistic_from_vectors(
-                diff_fRead = diff_fRead,
-                sample_labels = sample_perm,
-                label1 = biosample1,
-                label2 = biosample2
-              )
+              # Permuted S statistic.
+              (sum_group1 / n1_perm) - (sum_group2 / n2_perm)
             }
             
             close(pb)
