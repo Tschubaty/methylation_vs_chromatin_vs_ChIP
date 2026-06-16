@@ -1117,3 +1117,8 @@ ggsave(
   dpi = 180,
   limitsize = FALSE
 )
+
+saveRDS(object = all_jaccard_pairs_with_qc,file = file.path(
+  qc_output_dir,
+  "all_jaccard_pairs_with_qc.rds"
+))
