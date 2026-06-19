@@ -938,598 +938,372 @@ conflicting_rows_n50 <- stratified_test_qc_n50 %>%
 
 print(conflicting_rows_n50)
 
-#' # ============================================================
-#' # Add significance direction and pair-QC labels
-#' # ============================================================
-#' 
-#' stratified_qc_direction <- stratified_test_with_jaccard_qc %>%
-#'   mutate(
-#'     # Row was actually tested only if S statistic and p-values exist
-#'     tested = test_status == "tested" &
-#'       !is.na(observed_S_statistic) &
-#'       !is.na(p_value_S_bigger) &
-#'       !is.na(p_value_S_smaller),
-#'     
-#'     # Direction of observed S statistic
-#'     S_direction = case_when(
-#'       !tested ~ NA_character_,
-#'       observed_S_statistic > 0 ~ "positive",
-#'       observed_S_statistic < 0 ~ "negative",
-#'       observed_S_statistic == 0 ~ "zero",
-#'       TRUE ~ NA_character_
-#'     ),
-#'     
-#'     # One-sided significance in positive direction
-#'     sig_positive = tested &
-#'       observed_S_statistic > 0 &
-#'       p_value_S_bigger < alpha,
-#'     
-#'     # One-sided significance in negative direction
-#'     sig_negative = tested &
-#'       observed_S_statistic < 0 &
-#'       p_value_S_smaller < alpha,
-#'     
-#'     sig_any = sig_positive | sig_negative,
-#'     
-#'     # Compact row-level category
-#'     row_sig_category = case_when(
-#'       !tested ~ "not_tested",
-#'       sig_positive ~ "significant_positive",
-#'       sig_negative ~ "significant_negative",
-#'       tested & !sig_any & S_direction == "positive" ~ "non_sig_positive",
-#'       tested & !sig_any & S_direction == "negative" ~ "non_sig_negative",
-#'       tested & !sig_any & S_direction == "zero" ~ "zero",
-#'       TRUE ~ "check"
-#'     ),
-#'     
-#'     # Pair QC flag.
-#'     # Assumes pair_QC_reason has "Pass" for clean pairs.
-#'     pair_QC_reason_chr = as.character(pair_QC_reason),
-#'     
-#'     pair_QC_flag = case_when(
-#'       is.na(pair_QC_reason_chr) ~ NA,
-#'       pair_QC_reason_chr == "Pass" ~ FALSE,
-#'       TRUE ~ TRUE
-#'     ),
-#'     
-#'     pair_QC_status = case_when(
-#'       is.na(pair_QC_flag) ~ "No Jaccard/QC match",
-#'       pair_QC_flag ~ "QC flagged comparison",
-#'       !pair_QC_flag ~ "QC pass comparison"
-#'     )
-#'   )
-#' 
-#' # ============================================================
-#' # Row-level summary:
-#' # Among tested rows, how often are results non-significant?
-#' # ============================================================
-#' 
-#' row_qc_summary <- stratified_qc_direction %>%
-#'   filter(tested) %>%
-#'   group_by(pair_QC_status) %>%
-#'   summarise(
-#'     n_tested_rows = n(),
-#'     n_significant = sum(sig_any, na.rm = TRUE),
-#'     n_non_significant = sum(!sig_any, na.rm = TRUE),
-#'     percent_non_significant = round(100 * n_non_significant / n_tested_rows, 2),
-#'     percent_significant = round(100 * n_significant / n_tested_rows, 2),
-#'     .groups = "drop"
-#'   )
-#' 
-#' print(row_qc_summary)
-#' 
-#' p_non_sig_by_pair_qc <- ggplot(
-#'   row_qc_summary,
-#'   aes(x = pair_QC_status, y = percent_non_significant)
-#' ) +
-#'   geom_col() +
-#'   geom_text(
-#'     aes(label = paste0(percent_non_significant, "%\n", n_non_significant, "/", n_tested_rows)),
-#'     vjust = -0.25,
-#'     size = 4
-#'   ) +
-#'   theme_bw(base_size = 14) +
-#'   labs(
-#'     title = "Non-significant tests by pair QC status",
-#'     subtitle = paste0("alpha = ", alpha, "; only tested rows included"),
-#'     x = "Pair QC status",
-#'     y = "Non-significant tests (%)"
-#'   )
-#' 
-#' print(p_non_sig_by_pair_qc)
-#' 
-#' ggsave(
-#'   filename = file.path(qc_output_folder, "non_significant_by_pair_QC_status.svg"),
-#'   plot = p_non_sig_by_pair_qc,
-#'   width = 8,
-#'   height = 5,
-#'   limitsize = FALSE
-#' )
-#' 
-#' # ============================================================
-#' # Row-level significance category by exact QC reason
-#' # ============================================================
-#' 
-#' row_sig_by_qc_reason <- stratified_qc_direction %>%
-#'   filter(tested) %>%
-#'   mutate(
-#'     pair_QC_reason_chr = ifelse(
-#'       is.na(pair_QC_reason_chr),
-#'       "No Jaccard/QC match",
-#'       pair_QC_reason_chr
-#'     )
-#'   ) %>%
-#'   count(pair_QC_reason_chr, row_sig_category, name = "n") %>%
-#'   group_by(pair_QC_reason_chr) %>%
-#'   mutate(
-#'     total = sum(n),
-#'     percent = round(100 * n / total, 2)
-#'   ) %>%
-#'   ungroup()
-#' 
-#' print(row_sig_by_qc_reason)
-#' 
-#' p_sig_category_by_qc_reason <- ggplot(
-#'   row_sig_by_qc_reason,
-#'   aes(x = pair_QC_reason_chr, y = percent, fill = row_sig_category)
-#' ) +
-#'   geom_col() +
-#'   coord_flip() +
-#'   theme_bw(base_size = 14) +
-#'   labs(
-#'     title = "Significance category by pair QC reason",
-#'     subtitle = paste0("alpha = ", alpha, "; only tested rows included"),
-#'     x = "Pair QC reason",
-#'     y = "Rows (%)",
-#'     fill = "Test category"
-#'   )
-#' 
-#' print(p_sig_category_by_qc_reason)
-#' 
-#' ggsave(
-#'   filename = file.path(qc_output_folder, "significance_category_by_pair_QC_reason.svg"),
-#'   plot = p_sig_category_by_qc_reason,
-#'   width = 10,
-#'   height = 6,
-#'   limitsize = FALSE
-#' )
-#' 
-#' # ============================================================
-#' # Consistency per protein + motif + chromatin state
-#' # ============================================================
-#' 
-#' motif_state_consistency_qc <- stratified_qc_direction %>%
-#'   group_by(protein, motif, chromatin_state) %>%
-#'   summarise(
-#'     n_total_rows = n(),
-#'     n_tested_pairs = sum(tested, na.rm = TRUE),
-#'     
-#'     n_sig_positive = sum(sig_positive, na.rm = TRUE),
-#'     n_sig_negative = sum(sig_negative, na.rm = TRUE),
-#'     n_sig_total = n_sig_positive + n_sig_negative,
-#'     
-#'     n_non_sig = sum(tested & !sig_any, na.rm = TRUE),
-#'     
-#'     n_observed_positive = sum(tested & S_direction == "positive", na.rm = TRUE),
-#'     n_observed_negative = sum(tested & S_direction == "negative", na.rm = TRUE),
-#'     
-#'     # QC information across all pair comparisons belonging to this motif-state
-#'     n_pairs_with_qc_match = sum(!is.na(pair_QC_flag)),
-#'     n_qc_flagged_pairs = sum(pair_QC_flag, na.rm = TRUE),
-#'     n_qc_pass_pairs = sum(pair_QC_flag == FALSE, na.rm = TRUE),
-#'     
-#'     any_qc_flagged_pair = any(pair_QC_flag == TRUE, na.rm = TRUE),
-#'     all_pairs_qc_pass = all(pair_QC_flag == FALSE, na.rm = TRUE),
-#'     
-#'     median_jaccard = median(jaccard_index, na.rm = TRUE),
-#'     min_jaccard = min(jaccard_index, na.rm = TRUE),
-#'     
-#'     median_n_sample1 = median(n_sample1, na.rm = TRUE),
-#'     median_n_sample2 = median(n_sample2, na.rm = TRUE),
-#'     
-#'     .groups = "drop"
-#'   ) %>%
-#'   mutate(
-#'     any_qc_flagged_pair = ifelse(n_pairs_with_qc_match == 0, NA, any_qc_flagged_pair),
-#'     all_pairs_qc_pass = ifelse(n_pairs_with_qc_match == 0, NA, all_pairs_qc_pass),
-#'     
-#'     pair_QC_group = case_when(
-#'       is.na(any_qc_flagged_pair) ~ "No Jaccard/QC match",
-#'       any_qc_flagged_pair ~ "At least one QC-flagged comparison",
-#'       !any_qc_flagged_pair ~ "All comparisons QC pass"
-#'     ),
-#'     
-#'     significant_consistency = case_when(
-#'       n_tested_pairs == 0 ~ "no_tested_pairs",
-#'       n_sig_total == 0 ~ "no_significant_pairs",
-#'       n_sig_positive > 0 & n_sig_negative == 0 ~ "consistent_significant_positive",
-#'       n_sig_negative > 0 & n_sig_positive == 0 ~ "consistent_significant_negative",
-#'       n_sig_positive > 0 & n_sig_negative > 0 ~ "conflicting_significant_directions",
-#'       TRUE ~ "check"
-#'     ),
-#'     
-#'     problem_group = significant_consistency %in% c(
-#'       "no_significant_pairs",
-#'       "conflicting_significant_directions"
-#'     )
-#'   )
-#' 
-#' print(motif_state_consistency_qc)
-#' 
-#' # ============================================================
-#' # Motif-state level:
-#' # Are problematic consistency outcomes enriched in QC-flagged groups?
-#' # ============================================================
-#' 
-#' motif_state_problem_by_qc <- motif_state_consistency_qc %>%
-#'   filter(n_tested_pairs > 0) %>%
-#'   count(pair_QC_group, significant_consistency, name = "n_motif_states") %>%
-#'   group_by(pair_QC_group) %>%
-#'   mutate(
-#'     total = sum(n_motif_states),
-#'     percent = round(100 * n_motif_states / total, 2)
-#'   ) %>%
-#'   ungroup()
-#' 
-#' print(motif_state_problem_by_qc)
-#' 
-#' p_motif_state_problem_by_qc <- ggplot(
-#'   motif_state_problem_by_qc,
-#'   aes(x = pair_QC_group, y = percent, fill = significant_consistency)
-#' ) +
-#'   geom_col() +
-#'   coord_flip() +
-#'   theme_bw(base_size = 14) +
-#'   labs(
-#'     title = "Motif-state consistency outcome by pair QC status",
-#'     subtitle = "Grouped by protein + motif + chromatin state; only groups with tested pairs included",
-#'     x = "Pair QC group",
-#'     y = "Motif-state groups (%)",
-#'     fill = "Consistency outcome"
-#'   )
-#' 
-#' print(p_motif_state_problem_by_qc)
-#' 
-#' ggsave(
-#'   filename = file.path(qc_output_folder, "motif_state_consistency_by_pair_QC_status.svg"),
-#'   plot = p_motif_state_problem_by_qc,
-#'   width = 10,
-#'   height = 6,
-#'   limitsize = FALSE
-#' )
-#' 
-#' 
-#' library(dplyr)
-#' library(tidyr)
-#' library(ggplot2)
-#' library(stringr)
-#' 
-#' alpha <- 0.05
-#' 
-#' # ============================================================
-#' # Classify row-level significance direction
-#' # ============================================================
-#' 
-#' stratified_eval <- stratified_test_with_jaccard_qc %>%
-#'   mutate(
-#'     tested = test_status == "tested" &
-#'       !is.na(observed_S_statistic) &
-#'       !is.na(p_value_S_bigger) &
-#'       !is.na(p_value_S_smaller),
-#'     
-#'     sig_positive = tested &
-#'       observed_S_statistic > 0 &
-#'       p_value_S_bigger < alpha,
-#'     
-#'     sig_negative = tested &
-#'       observed_S_statistic < 0 &
-#'       p_value_S_smaller < alpha,
-#'     
-#'     sig_any = sig_positive | sig_negative,
-#'     
-#'     sig_direction = case_when(
-#'       sig_positive ~ "positive",
-#'       sig_negative ~ "negative",
-#'       tested & !sig_any ~ "not_significant",
-#'       TRUE ~ "not_tested"
-#'     ),
-#'     
-#'     pair_QC_reason_chr = as.character(pair_QC_reason),
-#'     
-#'     pair_QC_flag = case_when(
-#'       is.na(pair_QC_reason_chr) ~ NA,
-#'       pair_QC_reason_chr == "Pass" ~ FALSE,
-#'       TRUE ~ TRUE
-#'     )
-#'   )
-#' 
-#' # ============================================================
-#' # Conflict is defined at protein + motif + chromatin_state level
-#' # ============================================================
-#' 
-#' conflict_by_motif_state <- stratified_eval %>%
-#'   group_by(protein, motif, chromatin_state) %>%
-#'   summarise(
-#'     n_tested_pairs = sum(tested, na.rm = TRUE),
-#'     n_sig_positive = sum(sig_positive, na.rm = TRUE),
-#'     n_sig_negative = sum(sig_negative, na.rm = TRUE),
-#'     n_sig_total = n_sig_positive + n_sig_negative,
-#'     
-#'     conflicting_significant_direction =
-#'       n_sig_positive > 0 & n_sig_negative > 0,
-#'     
-#'     .groups = "drop"
-#'   )
-#' 
-#' stratified_eval_conflict <- stratified_eval %>%
-#'   left_join(
-#'     conflict_by_motif_state,
-#'     by = c("protein", "motif", "chromatin_state")
-#'   ) %>%
-#'   mutate(
-#'     conflict_group = case_when(
-#'       conflicting_significant_direction ~ "In conflicting motif-state",
-#'       TRUE ~ "Not conflicting"
-#'     )
-#'   )
-#' 
-#' # ============================================================
-#' # Pair-state level comparison of QC flags
-#' # ============================================================
-#' 
-#' qc_flag_comparison_pair_state <- stratified_eval_conflict %>%
-#'   filter(tested) %>%
-#'   select(
-#'     conflict_group,
-#'     pair_low_usable_count,
-#'     pair_high_no_motif,
-#'     pair_low_usable_percentage,
-#'     pair_high_no_cg,
-#'     pair_QC_flag
-#'   ) %>%
-#'   pivot_longer(
-#'     cols = c(
-#'       pair_low_usable_count,
-#'       pair_high_no_motif,
-#'       pair_low_usable_percentage,
-#'       pair_high_no_cg,
-#'       pair_QC_flag
-#'     ),
-#'     names_to = "qc_metric",
-#'     values_to = "qc_flag"
-#'   ) %>%
-#'   filter(!is.na(qc_flag)) %>%
-#'   group_by(conflict_group, qc_metric) %>%
-#'   summarise(
-#'     n_rows = n(),
-#'     n_flagged = sum(qc_flag, na.rm = TRUE),
-#'     percent_flagged = round(100 * n_flagged / n_rows, 2),
-#'     .groups = "drop"
-#'   )
-#' 
-#' print(qc_flag_comparison_pair_state)
-#' 
-#' p_qc_flags_conflict_pair_state <- ggplot(
-#'   qc_flag_comparison_pair_state,
-#'   aes(x = qc_metric, y = percent_flagged, fill = conflict_group)
-#' ) +
-#'   geom_col(position = position_dodge(width = 0.8)) +
-#'   geom_text(
-#'     aes(label = paste0(percent_flagged, "%")),
-#'     position = position_dodge(width = 0.8),
-#'     vjust = -0.25,
-#'     size = 3.5
-#'   ) +
-#'   coord_flip() +
-#'   theme_bw(base_size = 14) +
-#'   labs(
-#'     title = "QC flags in conflicting vs non-conflicting pair-state rows",
-#'     subtitle = paste0("Only tested rows included; alpha = ", alpha),
-#'     x = "QC metric",
-#'     y = "Flagged rows (%)",
-#'     fill = "Conflict status"
-#'   )
-#' 
-#' print(p_qc_flags_conflict_pair_state)
-#' 
-#' # ============================================================
-#' # Unique pair-level version
-#' # One row per protein + motif + experiment pair
-#' # ============================================================
-#' 
-#' pair_conflict_status <- stratified_eval_conflict %>%
-#'   group_by(
-#'     protein,
-#'     motif,
-#'     biosample1,
-#'     experiment_id1,
-#'     biosample2,
-#'     experiment_id2
-#'   ) %>%
-#'   summarise(
-#'     n_tested_states = sum(tested, na.rm = TRUE),
-#'     n_conflicting_states = sum(conflicting_significant_direction & tested, na.rm = TRUE),
-#'     
-#'     ever_in_conflict = n_conflicting_states > 0,
-#'     
-#'     conflict_group = ifelse(
-#'       ever_in_conflict,
-#'       "Pair ever in conflicting motif-state",
-#'       "Pair never in conflicting motif-state"
-#'     ),
-#'     
-#'     jaccard_index = first(jaccard_index),
-#'     pair_low_usable_count = first(pair_low_usable_count),
-#'     pair_high_no_motif = first(pair_high_no_motif),
-#'     pair_low_usable_percentage = first(pair_low_usable_percentage),
-#'     pair_high_no_cg = first(pair_high_no_cg),
-#'     pair_QC_flag = first(pair_QC_flag),
-#'     pair_QC_reason_chr = first(pair_QC_reason_chr),
-#'     
-#'     usable_count1 = first(usable_count1),
-#'     usable_percentage1 = first(usable_percentage1),
-#'     no_motif_percentage1 = first(no_motif_percentage1),
-#'     no_cg_percentage1 = first(no_cg_percentage1),
-#'     
-#'     usable_count2 = first(usable_count2),
-#'     usable_percentage2 = first(usable_percentage2),
-#'     no_motif_percentage2 = first(no_motif_percentage2),
-#'     no_cg_percentage2 = first(no_cg_percentage2),
-#'     
-#'     .groups = "drop"
-#'   ) %>%
-#'   filter(n_tested_states > 0)
-#' 
-#' 
-#' qc_flag_comparison_unique_pair <- pair_conflict_status %>%
-#'   select(
-#'     conflict_group,
-#'     pair_low_usable_count,
-#'     pair_high_no_motif,
-#'     pair_low_usable_percentage,
-#'     pair_high_no_cg,
-#'     pair_QC_flag
-#'   ) %>%
-#'   pivot_longer(
-#'     cols = c(
-#'       pair_low_usable_count,
-#'       pair_high_no_motif,
-#'       pair_low_usable_percentage,
-#'       pair_high_no_cg,
-#'       pair_QC_flag
-#'     ),
-#'     names_to = "qc_metric",
-#'     values_to = "qc_flag"
-#'   ) %>%
-#'   filter(!is.na(qc_flag)) %>%
-#'   group_by(conflict_group, qc_metric) %>%
-#'   summarise(
-#'     n_pairs = n(),
-#'     n_flagged = sum(qc_flag, na.rm = TRUE),
-#'     percent_flagged = round(100 * n_flagged / n_pairs, 2),
-#'     .groups = "drop"
-#'   )
-#' 
-#' print(qc_flag_comparison_unique_pair)
-#' 
-#' p_qc_flags_conflict_unique_pair <- ggplot(
-#'   qc_flag_comparison_unique_pair,
-#'   aes(x = qc_metric, y = percent_flagged, fill = conflict_group)
-#' ) +
-#'   geom_col(position = position_dodge(width = 0.8)) +
-#'   geom_text(
-#'     aes(label = paste0(percent_flagged, "%")),
-#'     position = position_dodge(width = 0.8),
-#'     vjust = -0.25,
-#'     size = 3.5
-#'   ) +
-#'   coord_flip() +
-#'   theme_bw(base_size = 14) +
-#'   labs(
-#'     title = "QC flags in pairs ever involved in conflict vs never involved",
-#'     subtitle = "Unique experiment-pair level",
-#'     x = "QC metric",
-#'     y = "Flagged pairs (%)",
-#'     fill = "Conflict status"
-#'   )
-#' 
-#' print(p_qc_flags_conflict_unique_pair)
-#' 
-#' #7. Plot exact QC reasons
-#' 
-#' #This shows whether conflicts are enriched in specific QC failure reas
-#' #''
-#' 
-#' 
-#' qc_reason_comparison <- pair_conflict_status %>%
-#'   mutate(
-#'     pair_QC_reason_chr = ifelse(
-#'       is.na(pair_QC_reason_chr),
-#'       "No QC match",
-#'       pair_QC_reason_chr
-#'     )
-#'   ) %>%
-#'   count(conflict_group, pair_QC_reason_chr, name = "n_pairs") %>%
-#'   group_by(conflict_group) %>%
-#'   mutate(
-#'     total_pairs = sum(n_pairs),
-#'     percent = round(100 * n_pairs / total_pairs, 2)
-#'   ) %>%
-#'   ungroup()
-#' 
-#' print(qc_reason_comparison)
-#' 
-#' p_qc_reason_conflict <- ggplot(
-#'   qc_reason_comparison,
-#'   aes(x = pair_QC_reason_chr, y = percent, fill = conflict_group)
-#' ) +
-#'   geom_col(position = position_dodge(width = 0.8)) +
-#'   coord_flip() +
-#'   theme_bw(base_size = 14) +
-#'   labs(
-#'     title = "QC reasons in conflicting vs non-conflicting pairs",
-#'     subtitle = "Unique experiment-pair level",
-#'     x = "Pair QC reason",
-#'     y = "Pairs (%)",
-#'     fill = "Conflict status"
-#'   )
-#' 
-#' print(p_qc_reason_conflict)
-#' 
-#' numeric_qc_comparison <- pair_conflict_status %>%
-#'   mutate(
-#'     low_usable_count = pmin(usable_count1, usable_count2, na.rm = TRUE),
-#'     low_usable_percentage = pmin(usable_percentage1, usable_percentage2, na.rm = TRUE),
-#'     high_no_motif_percentage = pmax(no_motif_percentage1, no_motif_percentage2, na.rm = TRUE),
-#'     high_no_cg_percentage = pmax(no_cg_percentage1, no_cg_percentage2, na.rm = TRUE)
-#'   ) %>%
-#'   select(
-#'     conflict_group,
-#'     jaccard_index,
-#'     low_usable_count,
-#'     low_usable_percentage,
-#'     high_no_motif_percentage,
-#'     high_no_cg_percentage
-#'   ) %>%
-#'   pivot_longer(
-#'     cols = c(
-#'       jaccard_index,
-#'       low_usable_count,
-#'       low_usable_percentage,
-#'       high_no_motif_percentage,
-#'       high_no_cg_percentage
-#'     ),
-#'     names_to = "qc_metric",
-#'     values_to = "value"
-#'   ) %>%
-#'   filter(!is.na(value))
-#' 
-#' p_numeric_qc_conflict <- ggplot(
-#'   numeric_qc_comparison,
-#'   aes(x = conflict_group, y = value, fill = conflict_group)
-#' ) +
-#'   geom_boxplot(outlier.alpha = 0.25) +
-#'   facet_wrap(~ qc_metric, scales = "free_y") +
-#'   theme_bw(base_size = 14) +
-#'   theme(
-#'     axis.text.x = element_text(angle = 30, hjust = 1),
-#'     legend.position = "none"
-#'   ) +
-#'   labs(
-#'     title = "Numeric QC metrics in conflicting vs non-conflicting pairs",
-#'     subtitle = "Unique experiment-pair level",
-#'     x = "Conflict status",
-#'     y = "QC metric value"
-#'   )
-#' 
-#' print(p_numeric_qc_conflict)
-#' 
-#' ###########################################################
-#' 
-#' protein_motif_pairs <- stratified_test_with_jaccard_qc %>%
-#'   distinct(protein, motif) %>%
-#'   arrange(protein, motif)
-#' 
-#' 
-#' cat("Unique proteins:", n_distinct(stratified_test_with_jaccard_qc$protein), "\n")
-#' cat("Unique protein-motif pairs:", nrow(protein_motif_pairs), "\n")
+length(unique(c(stratified_test_qc_n50$experiment_id1,stratified_test_qc_n50$experiment_id2)))
+length(unique(c(stratified_test_qc_n50$protein,stratified_test_qc_n50$protein)))
+
+
+
+############# median jaccard 
+
+library(dplyr)
+
+
+# 1. Remove chromatin-state duplication
+unique_pairs_n50 <- stratified_test_qc_n50 %>%
+  distinct(
+    protein,
+    motif,
+    biosample1,
+    experiment_id1,
+    antibody_label1,
+    biosample2,
+    experiment_id2,
+    antibody_label2,
+    jaccard_index,
+    .keep_all = TRUE
+  )
+
+# 2. Convert pair table into experiment-level table
+experiment_jaccard_n50 <- bind_rows(
+  unique_pairs_n50 %>%
+    transmute(
+      protein,
+      motif,
+      biosample = biosample1,
+      experiment_id = experiment_id1,
+      antibody_label = antibody_label1,
+      other_biosample = biosample2,
+      other_experiment_id = experiment_id2,
+      jaccard_index
+    ),
+  
+  unique_pairs_n50 %>%
+    transmute(
+      protein,
+      motif,
+      biosample = biosample2,
+      experiment_id = experiment_id2,
+      antibody_label = antibody_label2,
+      other_biosample = biosample1,
+      other_experiment_id = experiment_id1,
+      jaccard_index
+    )
+) %>%
+  distinct()
+
+experiment_median_jaccard_n50 <- experiment_jaccard_n50 %>%
+  group_by(protein, motif, biosample, experiment_id, antibody_label) %>%
+  summarise(
+    n_jaccard_comparisons = n(),
+    median_jaccard = median(jaccard_index, na.rm = TRUE),
+    mean_jaccard = mean(jaccard_index, na.rm = TRUE),
+    min_jaccard = min(jaccard_index, na.rm = TRUE),
+    max_jaccard = max(jaccard_index, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(protein, biosample, desc(median_jaccard))
+
+print(experiment_median_jaccard_n50)
+
+best_experiment_by_median_jaccard_n50 <- experiment_median_jaccard_n50 %>%
+  group_by(protein, motif, biosample) %>%
+  arrange(
+    desc(median_jaccard),
+    desc(mean_jaccard),
+    desc(n_jaccard_comparisons),
+    experiment_id,
+    .by_group = TRUE
+  ) %>%
+  slice(1) %>%
+  ungroup()
+
+print(best_experiment_by_median_jaccard_n50)
+
+library(dplyr)
+
+# Best experiment table: one row per protein + motif + biosample
+best_exp_keys <- best_experiment_by_median_jaccard_n50 %>%
+  select(protein, motif, biosample, experiment_id) %>%
+  distinct()
+
+# Keep only rows where experiment_id1 is best for biosample1
+# AND experiment_id2 is best for biosample2
+stratified_test_qc_n50_best_experiments <- stratified_test_qc_n50 %>%
+  semi_join(
+    best_exp_keys %>%
+      rename(
+        biosample1 = biosample,
+        experiment_id1 = experiment_id
+      ),
+    by = c("protein", "motif", "biosample1", "experiment_id1")
+  ) %>%
+  semi_join(
+    best_exp_keys %>%
+      rename(
+        biosample2 = biosample,
+        experiment_id2 = experiment_id
+      ),
+    by = c("protein", "motif", "biosample2", "experiment_id2")
+  )
+
+cat("Rows before best-experiment filter:", nrow(stratified_test_qc_n50), "\n")
+cat("Rows after best-experiment filter: ", nrow(stratified_test_qc_n50_best_experiments), "\n")
+
+summary_best_exp_n50 <- stratified_test_qc_n50_best_experiments %>%
+  summarise(
+    n_rows = n(),
+    n_proteins = n_distinct(protein),
+    n_motifs = n_distinct(motif),
+    n_protein_motif_pairs = n_distinct(paste(protein, motif)),
+    n_biosamples = n_distinct(c(biosample1, biosample2)),
+    n_experiment_ids = n_distinct(c(experiment_id1, experiment_id2)),
+    n_experiment_pairs = n_distinct(
+      paste(protein, motif, biosample1, experiment_id1, biosample2, experiment_id2)
+    ),
+    n_chromatin_states = n_distinct(chromatin_state)
+  )
+
+print(summary_best_exp_n50)
+
+
+chromatin_state_counts_best_exp <- stratified_test_qc_n50_best_experiments %>%
+  count(chromatin_state, name = "n_rows") %>%
+  tidyr::complete(
+    chromatin_state = 1:18,
+    fill = list(n_rows = 0)
+  ) %>%
+  mutate(
+    percent = round(100 * n_rows / sum(n_rows), 2)
+  ) %>%
+  arrange(chromatin_state)
+
+p_chromatin_state_counts_best_exp <- ggplot(
+  chromatin_state_counts_best_exp,
+  aes(x = factor(chromatin_state), y = n_rows, fill = factor(chromatin_state))
+) +
+  geom_col() +
+  geom_text(
+    aes(label = paste0(n_rows, "\n", percent, "%")),
+    vjust = -0.25,
+    size = 3.5
+  ) +
+  scale_fill_manual(
+    values = chromatin_state_colors_short,
+    drop = FALSE
+  ) +
+  theme_bw(base_size = 14) +
+  labs(
+    title = "Chromatin states represented after best-experiment filtering",
+    x = "Chromatin state",
+    y = "Number of rows",
+    fill = "Chromatin state"
+  )
+
+print(p_chromatin_state_counts_best_exp)
+
+
+
+
+
+
+
+
+
+
+
+# library(dplyr)
+# 
+# alpha_fdr <- 0.05
+# 
+# # ============================================================
+# # Add FDR-corrected two-sided p-values
+# # and redefine significance direction by FDR
+# # ============================================================
+# 
+# stratified_test_qc_n50_best_experiments <- stratified_test_qc_n50_best_experiments %>%
+#   mutate(
+#     # Keep old direction label for comparison
+#     sig_direction_nominal_old = sig_direction,
+#     
+#     tested = test_status == "tested" &
+#       !is.na(observed_S_statistic) &
+#       !is.na(p_value_two_sided)
+#   )
+# 
+# # Add BH/FDR correction only among actually tested rows
+# stratified_test_qc_n50_best_experiments$q_value_two_sided <- NA_real_
+# 
+# stratified_test_qc_n50_best_experiments$q_value_two_sided[
+#   stratified_test_qc_n50_best_experiments$tested
+# ] <- p.adjust(
+#   stratified_test_qc_n50_best_experiments$p_value_two_sided[
+#     stratified_test_qc_n50_best_experiments$tested
+#   ],
+#   method = "BH"
+# )
+# 
+# # Redefine significance using FDR-corrected two-sided p-value
+# stratified_test_qc_n50_best_experiments <- stratified_test_qc_n50_best_experiments %>%
+#   mutate(
+#     sig_positive = tested &
+#       observed_S_statistic > 0 &
+#       q_value_two_sided < alpha_fdr,
+#     
+#     sig_negative = tested &
+#       observed_S_statistic < 0 &
+#       q_value_two_sided < alpha_fdr,
+#     
+#     sig_any = sig_positive | sig_negative,
+#     
+#     sig_direction = case_when(
+#       !tested ~ "not_tested",
+#       sig_positive ~ "significant_positive",
+#       sig_negative ~ "significant_negative",
+#       tested & observed_S_statistic > 0 ~ "non_sig_positive",
+#       tested & observed_S_statistic < 0 ~ "non_sig_negative",
+#       tested & observed_S_statistic == 0 ~ "zero",
+#       TRUE ~ "check"
+#     )
+#   )
+# 
+# stratified_test_qc_n50_best_experiments %>%
+#   count(sig_direction, name = "n_rows") %>%
+#   mutate(percent = round(100 * n_rows / sum(n_rows), 2)) %>%
+#   print()
+# 
+# 
+# saveRDS(
+#   stratified_test_qc_n50_best_experiments,
+#   file = file.path(output_folder, "stratified_test_qc_n50_best_experiments_FDR.rds")
+# )
+# 
+# write.csv(
+#   stratified_test_qc_n50_best_experiments,
+#   file = file.path(output_folder, "stratified_test_qc_n50_best_experiments_FDR.csv"),
+#   row.names = FALSE
+# )
+# 
+# 
+# 
+# # Recalculate consistency after keeping only best experiments
+# consistency_best_exp_n50 <- stratified_test_qc_n50_best_experiments %>%
+#   group_by(protein, motif, chromatin_state) %>%
+#   summarise(
+#     n_total_pairs = n(),
+#     n_tested_pairs = sum(tested, na.rm = TRUE),
+#     
+#     n_sig_positive = sum(sig_positive, na.rm = TRUE),
+#     n_sig_negative = sum(sig_negative, na.rm = TRUE),
+#     n_sig_total = n_sig_positive + n_sig_negative,
+#     
+#     .groups = "drop"
+#   ) %>%
+#   mutate(
+#     significant_consistency = case_when(
+#       n_tested_pairs == 0 ~ "no_tested_pairs",
+#       n_sig_total == 0 ~ "no_significant_pairs",
+#       n_sig_positive > 0 & n_sig_negative == 0 ~ "consistent_significant_positive",
+#       n_sig_negative > 0 & n_sig_positive == 0 ~ "consistent_significant_negative",
+#       n_sig_positive > 0 & n_sig_negative > 0 ~ "conflicting_significant_directions",
+#       TRUE ~ "check"
+#     )
+#   )
+# 
+# # Summary
+# consistency_best_exp_n50 %>%
+#   count(significant_consistency, name = "n_motif_states") %>%
+#   arrange(desc(n_motif_states))
+# 
+# 
+# conflicting_best_exp_n50 <- consistency_best_exp_n50 %>%
+#   filter(significant_consistency == "conflicting_significant_directions") %>%
+#   arrange(desc(n_sig_total), protein, chromatin_state)
+# 
+# print(conflicting_best_exp_n50)
+# 
+# 
+# 
+# # cheklc results 
+# protein_sig_summary_FDR <- stratified_test_qc_n50_best_experiments %>%
+#   group_by(protein) %>%
+#   summarise(
+#     n_rows = n(),
+#     n_tested = sum(tested, na.rm = TRUE),
+#     
+#     n_sig_positive = sum(sig_direction == "significant_positive", na.rm = TRUE),
+#     n_sig_negative = sum(sig_direction == "significant_negative", na.rm = TRUE),
+#     n_sig_total = n_sig_positive + n_sig_negative,
+#     
+#     n_non_sig_positive = sum(sig_direction == "non_sig_positive", na.rm = TRUE),
+#     n_non_sig_negative = sum(sig_direction == "non_sig_negative", na.rm = TRUE),
+#     
+#     percent_sig_positive = round(100 * n_sig_positive / n_tested, 2),
+#     percent_sig_negative = round(100 * n_sig_negative / n_tested, 2),
+#     percent_sig_total = round(100 * n_sig_total / n_tested, 2),
+#     
+#     dominant_sig_direction = case_when(
+#       n_sig_positive > 0 & n_sig_negative == 0 ~ "positive_only",
+#       n_sig_negative > 0 & n_sig_positive == 0 ~ "negative_only",
+#       n_sig_positive > 0 & n_sig_negative > 0 ~ "both_directions",
+#       n_sig_total == 0 ~ "no_significant",
+#       TRUE ~ "check"
+#     ),
+#     
+#     .groups = "drop"
+#   ) %>%
+#   arrange(desc(n_sig_total), desc(abs(n_sig_positive - n_sig_negative)), protein)
+# 
+# print(protein_sig_summary_FDR)
+# 
+# 
+# 
+# contradictory_proteins_FDR <- protein_sig_summary_FDR %>%
+#   filter(dominant_sig_direction == "both_directions") %>%
+#   arrange(desc(n_sig_total), protein)
+# 
+# print(contradictory_proteins_FDR)
+# 
+# contradictory_rows_FDR <- stratified_test_qc_n50_best_experiments %>%
+#   semi_join(
+#     contradictory_proteins_FDR %>% select(protein),
+#     by = "protein"
+#   ) %>%
+#   filter(sig_direction %in% c("significant_positive", "significant_negative")) %>%
+#   arrange(protein, chromatin_state, sig_direction, q_value_two_sided) %>%
+#   select(
+#     protein,
+#     motif,
+#     chromatin_state,
+#     biosample1,
+#     experiment_id1,
+#     biosample2,
+#     experiment_id2,
+#     n_sample1,
+#     n_sample2,
+#     observed_S_statistic,
+#     p_value_two_sided,
+#     q_value_two_sided,
+#     sig_direction
+#   )
+# 
+# print(contradictory_rows_FDR)
+# 
+# 
+
+
+r_table <- stratified_test_qc_n50_best_experiments %>%
+  count(sig_direction, name = "n_rows") %>%
+  mutate(percent = round(100 * n_rows / sum(n_rows), 2))
+
+
+n_sig_negative <- r_table$n_rows[3]
+n_sig_positive <- r_table$n_rows[4]
+alpha_fdr <- 0.05
+
+expected_false_negative <- alpha_fdr * n_sig_negative
+expected_false_positive <- alpha_fdr * n_sig_positive
+expected_false_total <- alpha_fdr * (n_sig_negative + n_sig_positive)
+
+expected_false_negative
+expected_false_positive
+expected_false_total
