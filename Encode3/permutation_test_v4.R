@@ -274,7 +274,7 @@ for (protein in protein_folders) {
     
     # Loop through each experiment pair
     for (pair_idx in seq_along(experiment_pairs)) {
-      # pair_idx <- seq_along(experiment_pairs)[1]
+      # pair_idx <- seq_along(experiment_pairs)[2]
       pair <- experiment_pairs[[pair_idx]]
       idx1 <- pair[1]
       idx2 <- pair[2]
@@ -682,6 +682,175 @@ for (protein in protein_folders) {
           # Two-sided empirical p-value.
           # min(1, ...) prevents values above 1.
           p_value_two_sided <- min(1, 2 * min(p_value_S_bigger, p_value_S_smaller))
+          
+          # ============================================================
+          # Plot 1: CpG methylation values in biosample1 vs biosample2
+          # Plot 2: Full permutation S-statistic distribution
+          # ============================================================
+          
+          # Create readable ChIP-binding group labels for point colours.
+          plot_df <- current_df %>%
+            dplyr::mutate(
+              binding_group = dplyr::case_when(
+                sample == biosample1 ~ paste0(biosample1, " only"),
+                sample == biosample2 ~ paste0(biosample2, " only"),
+                sample == biosample_both ~ "Both ChIP-seq peaks",
+                TRUE ~ NA_character_
+              ),
+              binding_group = factor(
+                binding_group,
+                levels = c(
+                  paste0(biosample1, " only"),
+                  paste0(biosample2, " only"),
+                  "Both ChIP-seq peaks"
+                )
+              )
+            )
+          
+          # Use the existing biosample colours, with yellow for CpGs
+          # found in ChIP-seq peaks of both experiments.
+          binding_group_colours <- c(
+            setNames(
+              unname(group.colors[[biosample1]]),
+              paste0(biosample1, " only")
+            ),
+            setNames(
+              unname(group.colors[[biosample2]]),
+              paste0(biosample2, " only")
+            ),
+            "Both ChIP-seq peaks" = "#FFD700"
+          )
+          
+          # ---------------- Plot 1: CpG methylation scatter plot ----------------
+          methylation_scatter_plot <- ggplot(
+            plot_df,
+            aes(
+              x = .data[[paste0("fRead_", biosample1)]],
+              y = .data[[paste0("fRead_", biosample2)]],
+              colour = binding_group
+            )
+          ) +
+            geom_abline(
+              slope = 1,
+              intercept = 0,
+              linetype = "dashed",
+              colour = "grey50"
+            ) +
+            geom_point(alpha = 0.55, size = 1.3, na.rm = TRUE) +
+            scale_colour_manual(
+              values = binding_group_colours,
+              name = "ChIP-seq peak membership",
+              drop = FALSE,
+              na.translate = FALSE
+            ) +
+            coord_equal(
+              xlim = c(0, 1),
+              ylim = c(0, 1),
+              expand = FALSE
+            ) +
+            labs(
+              title = paste0(
+                protein, " | ", motif,
+                " | Chromatin state ", state_i
+              ),
+              subtitle = paste0(
+                biosample1, " [", experiment_id1, "] vs ",
+                biosample2, " [", experiment_id2, "]",
+                " | CpGs: ", nrow(plot_df)
+              ),
+              x = paste0("CpG methylation: ", biosample1),
+              y = paste0("CpG methylation: ", biosample2)
+            ) +
+            theme_classic(base_size = 12) +
+            theme(legend.position = "bottom")
+          
+          ggsave(
+            filename = file.path(
+              pair_out_dir,
+              paste0(
+                "CpG_methylation_scatter_state_",
+                state_i,
+                ".",
+                picuture_file_extension
+              )
+            ),
+            plot = methylation_scatter_plot,
+            width = 8,
+            height = 7,
+            units = "in",
+            dpi = 300,
+            limitsize = FALSE
+          )
+          
+          # ---------------- Plot 2: permutation statistic distribution ----------------
+          permutation_plot_df <- tibble::tibble(
+            S_statistic = permuted_S_values
+          )
+          
+          # Include the observed statistic in the displayed x-axis range.
+          permutation_x_limits <- range(
+            c(permuted_S_values, observed_S_statistic),
+            finite = TRUE
+          )
+          
+          # Avoid a zero-width x-axis in the unlikely case that all values are identical.
+          if (diff(permutation_x_limits) == 0) {
+            permutation_x_limits <- permutation_x_limits + c(-0.01, 0.01)
+          }
+          
+          permutation_distribution_plot <- ggplot(
+            permutation_plot_df,
+            aes(x = S_statistic)
+          ) +
+            geom_histogram(
+              bins = 80,
+              fill = "grey85",
+              colour = "white"
+            ) +
+            geom_vline(
+              xintercept = observed_S_statistic,
+              colour = "red",
+              linewidth = 1
+            ) +
+            coord_cartesian(xlim = permutation_x_limits) +
+            labs(
+              title = paste0(
+                "Permutation distribution of S statistic | State ",
+                state_i
+              ),
+              subtitle = paste0(
+                protein, " | ", motif,
+                "\n",
+                biosample1, " [", experiment_id1, "] vs ",
+                biosample2, " [", experiment_id2, "]",
+                "\nObserved S = ",
+                formatC(observed_S_statistic, format = "f", digits = 5)
+              ),
+              x = "Permuted S statistic",
+              y = "Number of permutations"
+            ) +
+            theme_classic(base_size = 12)
+          
+          ggsave(
+            filename = file.path(
+              pair_out_dir,
+              paste0(
+                "permutation_S_distribution_state_",
+                state_i,
+                "_nperm_",
+                n_permutations,
+                ".",
+                picuture_file_extension
+              )
+            ),
+            plot = permutation_distribution_plot,
+            width = 9,
+            height = 6,
+            units = "in",
+            dpi = 300,
+            limitsize = FALSE
+          )
+         
         }
         
         # Always append one row per chromatin state.

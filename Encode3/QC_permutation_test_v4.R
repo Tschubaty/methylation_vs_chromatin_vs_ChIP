@@ -1102,193 +1102,184 @@ p_chromatin_state_counts_best_exp <- ggplot(
 print(p_chromatin_state_counts_best_exp)
 
 
+library(dplyr)
+
+alpha_fdr <- 0.05
+
+# ============================================================
+# Add FDR-corrected two-sided p-values
+# and redefine significance direction by FDR
+# ============================================================
+# stratified_test_qc_n50_best_experiments <- stratified_test_qc_n50_best_experiments_FDR
+stratified_test_qc_n50_best_experiments <- stratified_test_qc_n50_best_experiments %>%
+  mutate(
+    # Keep old direction label for comparison
+    sig_direction_nominal_old = sig_direction,
+
+    tested = test_status == "tested" &
+      !is.na(observed_S_statistic) &
+      !is.na(p_value_two_sided)
+  )
+
+# Add BH/FDR correction only among actually tested rows
+stratified_test_qc_n50_best_experiments$q_value_two_sided <- NA_real_
+
+stratified_test_qc_n50_best_experiments$q_value_two_sided[
+  stratified_test_qc_n50_best_experiments$tested
+] <- p.adjust(
+  stratified_test_qc_n50_best_experiments$p_value_two_sided[
+    stratified_test_qc_n50_best_experiments$tested
+  ],
+  method = "BH"
+)
+
+# Redefine significance using FDR-corrected two-sided p-value
+stratified_test_qc_n50_best_experiments <- stratified_test_qc_n50_best_experiments %>%
+  mutate(
+    sig_positive = tested &
+      observed_S_statistic > 0 &
+      q_value_two_sided < alpha_fdr,
+
+    sig_negative = tested &
+      observed_S_statistic < 0 &
+      q_value_two_sided < alpha_fdr,
+
+    sig_any = sig_positive | sig_negative,
+
+    sig_direction = case_when(
+      !tested ~ "not_tested",
+      sig_positive ~ "significant_positive",
+      sig_negative ~ "significant_negative",
+      tested & observed_S_statistic > 0 ~ "non_sig_positive",
+      tested & observed_S_statistic < 0 ~ "non_sig_negative",
+      tested & observed_S_statistic == 0 ~ "zero",
+      TRUE ~ "check"
+    )
+  )
+
+stratified_test_qc_n50_best_experiments %>%
+  count(sig_direction, name = "n_rows") %>%
+  mutate(percent = round(100 * n_rows / sum(n_rows), 2)) %>%
+  print()
+
+
+saveRDS(
+  stratified_test_qc_n50_best_experiments,
+  file = file.path(output_folder, "stratified_test_qc_n50_best_experiments_FDR.rds")
+)
+
+write.csv(
+  stratified_test_qc_n50_best_experiments,
+  file = file.path(output_folder, "stratified_test_qc_n50_best_experiments_FDR.csv"),
+  row.names = FALSE
+)
 
 
 
+# Recalculate consistency after keeping only best experiments
+consistency_best_exp_n50 <- stratified_test_qc_n50_best_experiments %>%
+  group_by(protein, motif, chromatin_state) %>%
+  summarise(
+    n_total_pairs = n(),
+    n_tested_pairs = sum(tested, na.rm = TRUE),
+
+    n_sig_positive = sum(sig_positive, na.rm = TRUE),
+    n_sig_negative = sum(sig_negative, na.rm = TRUE),
+    n_sig_total = n_sig_positive + n_sig_negative,
+
+    .groups = "drop"
+  ) %>%
+  mutate(
+    significant_consistency = case_when(
+      n_tested_pairs == 0 ~ "no_tested_pairs",
+      n_sig_total == 0 ~ "no_significant_pairs",
+      n_sig_positive > 0 & n_sig_negative == 0 ~ "consistent_significant_positive",
+      n_sig_negative > 0 & n_sig_positive == 0 ~ "consistent_significant_negative",
+      n_sig_positive > 0 & n_sig_negative > 0 ~ "conflicting_significant_directions",
+      TRUE ~ "check"
+    )
+  )
+
+# Summary
+consistency_best_exp_n50 %>%
+  count(significant_consistency, name = "n_motif_states") %>%
+  arrange(desc(n_motif_states))
+
+
+conflicting_best_exp_n50 <- consistency_best_exp_n50 %>%
+  filter(significant_consistency == "conflicting_significant_directions") %>%
+  arrange(desc(n_sig_total), protein, chromatin_state)
+
+print(conflicting_best_exp_n50)
 
 
 
+# cheklc results
+protein_sig_summary_FDR <- stratified_test_qc_n50_best_experiments %>%
+  group_by(protein) %>%
+  summarise(
+    n_rows = n(),
+    n_tested = sum(tested, na.rm = TRUE),
+
+    n_sig_positive = sum(sig_direction == "significant_positive", na.rm = TRUE),
+    n_sig_negative = sum(sig_direction == "significant_negative", na.rm = TRUE),
+    n_sig_total = n_sig_positive + n_sig_negative,
+
+    n_non_sig_positive = sum(sig_direction == "non_sig_positive", na.rm = TRUE),
+    n_non_sig_negative = sum(sig_direction == "non_sig_negative", na.rm = TRUE),
+
+    percent_sig_positive = round(100 * n_sig_positive / n_tested, 2),
+    percent_sig_negative = round(100 * n_sig_negative / n_tested, 2),
+    percent_sig_total = round(100 * n_sig_total / n_tested, 2),
+
+    dominant_sig_direction = case_when(
+      n_sig_positive > 0 & n_sig_negative == 0 ~ "positive_only",
+      n_sig_negative > 0 & n_sig_positive == 0 ~ "negative_only",
+      n_sig_positive > 0 & n_sig_negative > 0 ~ "both_directions",
+      n_sig_total == 0 ~ "no_significant",
+      TRUE ~ "check"
+    ),
+
+    .groups = "drop"
+  ) %>%
+  arrange(desc(n_sig_total), desc(abs(n_sig_positive - n_sig_negative)), protein)
+
+print(protein_sig_summary_FDR)
 
 
 
-# library(dplyr)
-# 
-# alpha_fdr <- 0.05
-# 
-# # ============================================================
-# # Add FDR-corrected two-sided p-values
-# # and redefine significance direction by FDR
-# # ============================================================
-# 
-# stratified_test_qc_n50_best_experiments <- stratified_test_qc_n50_best_experiments %>%
-#   mutate(
-#     # Keep old direction label for comparison
-#     sig_direction_nominal_old = sig_direction,
-#     
-#     tested = test_status == "tested" &
-#       !is.na(observed_S_statistic) &
-#       !is.na(p_value_two_sided)
-#   )
-# 
-# # Add BH/FDR correction only among actually tested rows
-# stratified_test_qc_n50_best_experiments$q_value_two_sided <- NA_real_
-# 
-# stratified_test_qc_n50_best_experiments$q_value_two_sided[
-#   stratified_test_qc_n50_best_experiments$tested
-# ] <- p.adjust(
-#   stratified_test_qc_n50_best_experiments$p_value_two_sided[
-#     stratified_test_qc_n50_best_experiments$tested
-#   ],
-#   method = "BH"
-# )
-# 
-# # Redefine significance using FDR-corrected two-sided p-value
-# stratified_test_qc_n50_best_experiments <- stratified_test_qc_n50_best_experiments %>%
-#   mutate(
-#     sig_positive = tested &
-#       observed_S_statistic > 0 &
-#       q_value_two_sided < alpha_fdr,
-#     
-#     sig_negative = tested &
-#       observed_S_statistic < 0 &
-#       q_value_two_sided < alpha_fdr,
-#     
-#     sig_any = sig_positive | sig_negative,
-#     
-#     sig_direction = case_when(
-#       !tested ~ "not_tested",
-#       sig_positive ~ "significant_positive",
-#       sig_negative ~ "significant_negative",
-#       tested & observed_S_statistic > 0 ~ "non_sig_positive",
-#       tested & observed_S_statistic < 0 ~ "non_sig_negative",
-#       tested & observed_S_statistic == 0 ~ "zero",
-#       TRUE ~ "check"
-#     )
-#   )
-# 
-# stratified_test_qc_n50_best_experiments %>%
-#   count(sig_direction, name = "n_rows") %>%
-#   mutate(percent = round(100 * n_rows / sum(n_rows), 2)) %>%
-#   print()
-# 
-# 
-# saveRDS(
-#   stratified_test_qc_n50_best_experiments,
-#   file = file.path(output_folder, "stratified_test_qc_n50_best_experiments_FDR.rds")
-# )
-# 
-# write.csv(
-#   stratified_test_qc_n50_best_experiments,
-#   file = file.path(output_folder, "stratified_test_qc_n50_best_experiments_FDR.csv"),
-#   row.names = FALSE
-# )
-# 
-# 
-# 
-# # Recalculate consistency after keeping only best experiments
-# consistency_best_exp_n50 <- stratified_test_qc_n50_best_experiments %>%
-#   group_by(protein, motif, chromatin_state) %>%
-#   summarise(
-#     n_total_pairs = n(),
-#     n_tested_pairs = sum(tested, na.rm = TRUE),
-#     
-#     n_sig_positive = sum(sig_positive, na.rm = TRUE),
-#     n_sig_negative = sum(sig_negative, na.rm = TRUE),
-#     n_sig_total = n_sig_positive + n_sig_negative,
-#     
-#     .groups = "drop"
-#   ) %>%
-#   mutate(
-#     significant_consistency = case_when(
-#       n_tested_pairs == 0 ~ "no_tested_pairs",
-#       n_sig_total == 0 ~ "no_significant_pairs",
-#       n_sig_positive > 0 & n_sig_negative == 0 ~ "consistent_significant_positive",
-#       n_sig_negative > 0 & n_sig_positive == 0 ~ "consistent_significant_negative",
-#       n_sig_positive > 0 & n_sig_negative > 0 ~ "conflicting_significant_directions",
-#       TRUE ~ "check"
-#     )
-#   )
-# 
-# # Summary
-# consistency_best_exp_n50 %>%
-#   count(significant_consistency, name = "n_motif_states") %>%
-#   arrange(desc(n_motif_states))
-# 
-# 
-# conflicting_best_exp_n50 <- consistency_best_exp_n50 %>%
-#   filter(significant_consistency == "conflicting_significant_directions") %>%
-#   arrange(desc(n_sig_total), protein, chromatin_state)
-# 
-# print(conflicting_best_exp_n50)
-# 
-# 
-# 
-# # cheklc results 
-# protein_sig_summary_FDR <- stratified_test_qc_n50_best_experiments %>%
-#   group_by(protein) %>%
-#   summarise(
-#     n_rows = n(),
-#     n_tested = sum(tested, na.rm = TRUE),
-#     
-#     n_sig_positive = sum(sig_direction == "significant_positive", na.rm = TRUE),
-#     n_sig_negative = sum(sig_direction == "significant_negative", na.rm = TRUE),
-#     n_sig_total = n_sig_positive + n_sig_negative,
-#     
-#     n_non_sig_positive = sum(sig_direction == "non_sig_positive", na.rm = TRUE),
-#     n_non_sig_negative = sum(sig_direction == "non_sig_negative", na.rm = TRUE),
-#     
-#     percent_sig_positive = round(100 * n_sig_positive / n_tested, 2),
-#     percent_sig_negative = round(100 * n_sig_negative / n_tested, 2),
-#     percent_sig_total = round(100 * n_sig_total / n_tested, 2),
-#     
-#     dominant_sig_direction = case_when(
-#       n_sig_positive > 0 & n_sig_negative == 0 ~ "positive_only",
-#       n_sig_negative > 0 & n_sig_positive == 0 ~ "negative_only",
-#       n_sig_positive > 0 & n_sig_negative > 0 ~ "both_directions",
-#       n_sig_total == 0 ~ "no_significant",
-#       TRUE ~ "check"
-#     ),
-#     
-#     .groups = "drop"
-#   ) %>%
-#   arrange(desc(n_sig_total), desc(abs(n_sig_positive - n_sig_negative)), protein)
-# 
-# print(protein_sig_summary_FDR)
-# 
-# 
-# 
-# contradictory_proteins_FDR <- protein_sig_summary_FDR %>%
-#   filter(dominant_sig_direction == "both_directions") %>%
-#   arrange(desc(n_sig_total), protein)
-# 
-# print(contradictory_proteins_FDR)
-# 
-# contradictory_rows_FDR <- stratified_test_qc_n50_best_experiments %>%
-#   semi_join(
-#     contradictory_proteins_FDR %>% select(protein),
-#     by = "protein"
-#   ) %>%
-#   filter(sig_direction %in% c("significant_positive", "significant_negative")) %>%
-#   arrange(protein, chromatin_state, sig_direction, q_value_two_sided) %>%
-#   select(
-#     protein,
-#     motif,
-#     chromatin_state,
-#     biosample1,
-#     experiment_id1,
-#     biosample2,
-#     experiment_id2,
-#     n_sample1,
-#     n_sample2,
-#     observed_S_statistic,
-#     p_value_two_sided,
-#     q_value_two_sided,
-#     sig_direction
-#   )
-# 
-# print(contradictory_rows_FDR)
-# 
-# 
+contradictory_proteins_FDR <- protein_sig_summary_FDR %>%
+  filter(dominant_sig_direction == "both_directions") %>%
+  arrange(desc(n_sig_total), protein)
+
+print(contradictory_proteins_FDR)
+
+contradictory_rows_FDR <- stratified_test_qc_n50_best_experiments %>%
+  semi_join(
+    contradictory_proteins_FDR %>% select(protein),
+    by = "protein"
+  ) %>%
+  filter(sig_direction %in% c("significant_positive", "significant_negative")) %>%
+  arrange(protein, chromatin_state, sig_direction, q_value_two_sided) %>%
+  select(
+    protein,
+    motif,
+    chromatin_state,
+    biosample1,
+    experiment_id1,
+    biosample2,
+    experiment_id2,
+    n_sample1,
+    n_sample2,
+    observed_S_statistic,
+    p_value_two_sided,
+    q_value_two_sided,
+    sig_direction
+  )
+
+print(contradictory_rows_FDR)
+
+
 
 
 r_table <- stratified_test_qc_n50_best_experiments %>%
@@ -1307,3 +1298,81 @@ expected_false_total <- alpha_fdr * (n_sig_negative + n_sig_positive)
 expected_false_negative
 expected_false_positive
 expected_false_total
+
+saveRDS(object =  stratified_test_qc_n50_best_experiments,
+  file = file.path(output_folder, "stratified_test_qc_n50_best_experiments_FDR.rds")
+)
+
+write.csv(
+  stratified_test_qc_n50_best_experiments,
+  file = file.path(output_folder, "stratified_test_qc_n50_best_experiments_FDR.csv"),
+  row.names = FALSE
+)
+
+if (require(openxlsx)) {
+  openxlsx::write.xlsx(
+    stratified_test_qc_n50_best_experiments,
+    file = file.path(output_folder, "stratified_test_qc_n50_best_experiments_FDR.xlsx"),
+    overwrite = TRUE
+  )
+}
+
+
+library(dplyr)
+
+experiment_counts <- dplyr::bind_rows(
+  stratified_test_qc_n50_best_experiments %>%
+    transmute(protein, ExperimentID = experiment_id1, Biosample = biosample1),
+  stratified_test_qc_n50_best_experiments %>%
+    transmute(protein, ExperimentID = experiment_id2, Biosample = biosample2)
+) %>%
+  distinct() %>%
+  summarise(
+    n_proteins = n_distinct(protein),
+    n_experiments = n_distinct(ExperimentID),
+    n_biosamples = n_distinct(Biosample),
+    n_protein_experiment_pairs = n_distinct(paste(protein, ExperimentID, sep = "_"))
+  )
+
+experiment_counts
+
+
+library(dplyr)
+
+state1_results <- stratified_test_qc_n50_best_experiments %>%
+  filter(chromatin_state == 1, tested == TRUE)
+
+state1_protein_summary <- state1_results %>%
+  group_by(protein) %>%
+  summarise(
+    n_tests = n(),
+    n_sig_positive = sum(sig_positive, na.rm = TRUE),
+    n_sig_negative = sum(sig_negative, na.rm = TRUE),
+    n_sig_any = sum(sig_any, na.rm = TRUE),
+    has_sig_positive = any(sig_positive, na.rm = TRUE),
+    has_sig_negative = any(sig_negative, na.rm = TRUE),
+    has_sig_any = any(sig_any, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    protein_result = case_when(
+      has_sig_positive & has_sig_negative ~ "significant_both_directions",
+      has_sig_positive ~ "significant_higher_methylation",
+      has_sig_negative ~ "significant_lower_methylation",
+      TRUE ~ "not_significant"
+    )
+  )
+
+state1_protein_counts <- state1_protein_summary %>%
+  count(protein_result)
+
+state1_protein_counts
+
+
+stratified_test_qc_n50_best_experiments[stratified_test_qc_n50_best_experiments$sig_direction == "significant_positive",]
+unique(stratified_test_qc_n50_best_experiments$protein[stratified_test_qc_n50_best_experiments$sig_direction == "significant_positive"])
+# CEBPB  significant_positive
+# outlier: MAFF MAFF.H12CORE.0.PSM.A              17      HepG2    ENCFF643LNZ       K562    ENCFF939WDM       326        76          0.128511607           0.00250      0.0061970684 significant_positive
+# REST significant_negative  outlier:  REST.H12CORE.0.P.B              18       A549    ENCFF871AVP    GM12878    ENCFF348LKE       147       150          0.118382048           0.00606      0.0137661493 significant_positive
+# ZBTB40 significant_positive outlier: ZBT40.H12CORE.0.P.B               2      HepG2    ENCFF703AUF       K562    ENCFF745YDH        79        88         -0.077510311           0.02306      0.0440921106 significant_negative
+# ZNF121 significant_negative outlier : ZNF121  ZN121.H12CORE.0.P.B              18      HepG2    ENCFF817UOJ       K562    ENCFF650DWZ       556       955          0.092266522           0.00006      0.0002094495 significant_positive
