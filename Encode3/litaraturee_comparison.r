@@ -13,6 +13,107 @@ if (cluster) {
 setwd(this.dir)
 
 
+
+
+library(readxl)
+
+kaluscha_file <- file.path(
+  this.dir,
+  "literature",
+  "41588_2022_1241_MOESM3_ESM.xlsx"
+)
+
+download.file(
+  url = "https://static-content.springer.com/esm/art%3A10.1038%2Fs41588-022-01241-6/MediaObjects/41588_2022_1241_MOESM3_ESM.xlsx",
+  destfile = kaluscha_file,
+  mode = "wb"
+)
+
+excel_sheets(kaluscha_file)
+
+# Then inspect the antibody sheets/tables
+lapply(excel_sheets(kaluscha_file), function(sheet) {
+  message("SHEET: ", sheet)
+  print(read_excel(kaluscha_file, sheet = sheet, n_max = 10))
+})
+
+# -------------------------------------------------------------------------
+# Kaluscha et al. 2022 / Nature Genetics
+# DOI: 10.1038/s41588-022-01241-6
+#
+# Extended Data Fig. 5b visual extraction.
+# These are candidate enriched TF motifs in DNMT-TKO-specific ATAC-seq peaks.
+# They are NOT all individually validated methylation-sensitive proteins.
+# -------------------------------------------------------------------------
+
+kaluscha2022_fig5b_motif_labels <- c(
+  "EGR3",
+  "NRF1",
+  "ELK1",
+  "ETS1",
+  "ERG",
+  "PAX1",
+  "GMEB1",
+  "ATF4",
+  "JUN",
+  "CREB1",
+  "JUNB",
+  "JUND",
+  "FOSL2",
+  "FOSB",
+  "FOSL1",
+  "CREB5",
+  "ATF7",
+  "ATF1",
+  "CREM",
+  "CREB3",
+  "MLX",
+  "CTCF",
+  "E2F2",
+  "YY1",
+  "YY2",
+  "NEUROG2",
+  "TGIF2",
+  "MYF6",
+  "SRY",
+  "FOXF2",
+  "FOXP1",
+  "FOXP2",
+  "FOXK1",
+  "FOXD1",
+  "FOXO3",
+  "FOXP3",
+  "FOXG1",
+  "FOXJ2",
+  "ONECUT1",
+  "ONECUT2",
+  "CUX1",
+  "CUX2",
+  "DUX",
+  "NFYB",
+  "NFYA"
+)
+
+length(kaluscha2022_fig5b_motif_labels)
+# -------------------------------------------------------------------------
+# Short protein-level call table for appending to the big comparison table
+# -------------------------------------------------------------------------
+
+kaluscha2022_fig5b_results_raw <- tibble::tibble(
+  protein = kaluscha2022_fig5b_motif_labels
+) %>%
+  dplyr::mutate(
+    protein = stringr::str_to_upper(stringr::str_trim(protein)),
+    
+    Kaluscha2022_Fig5b_call =
+      "candidate_enriched_motif_in_DNMT_TKO_specific_ATAC_peaks") %>%
+  dplyr::distinct(protein, .keep_all = TRUE) %>%
+  dplyr::arrange(protein)
+
+kaluscha2022_fig5b_results_raw
+
+
+
 library(readxl)
 
 yin2017_file <- file.path(
@@ -601,7 +702,8 @@ all_methylation_results_raw <- list(
   luo2021_results_raw,
   hu2013_results_raw,
   grau2023_results_raw,
-  song2021_results_raw
+  song2021_results_raw,
+  kaluscha2022_fig5b_results_raw
 ) %>%
   purrr::reduce(
     dplyr::full_join,
@@ -651,5 +753,135 @@ nrow(our_unique_proteins)
 our_unique_proteins %>%
   print(n = Inf)
 
+# writexl::write_xlsx(
+#   stratified_test_qc_n50_best_experiments_FDR,
+#   path = file.path(
+#     this.dir,
+#     "stratified_test_qc_n50_best_experiments_FDR.xlsx"
+#   )
+# )
 
 
+# -------------------------------------------------------------------------
+# Helper: compare each external source with Batyrev results
+# -------------------------------------------------------------------------
+
+compare_source_to_batyrev <- function(source_df, source_name) {
+  
+  source_df %>%
+    dplyr::select(protein) %>%
+    dplyr::filter(!is.na(protein), protein != "") %>%
+    dplyr::distinct(protein) %>%
+    dplyr::left_join(
+      our_results_raw %>%
+        dplyr::select(
+          protein,
+          Batyrev_methylation_call,
+          n_significant_positive,
+          n_significant_negative,
+          n_not_significant
+        ),
+      by = "protein"
+    ) %>%
+    dplyr::mutate(
+      source = source_name,
+      present_in_batyrev = !is.na(Batyrev_methylation_call)
+    )
+}
+
+source_overlap_all <- dplyr::bind_rows(
+  compare_source_to_batyrev(yin2017_results_raw, "Yin2017"),
+  compare_source_to_batyrev(jams2022_results_raw, "JAMS2022"),
+  compare_source_to_batyrev(miodownik2025_results_raw, "Miodownik2025"),
+  compare_source_to_batyrev(luo2021_results_raw, "Luo2021"),
+  compare_source_to_batyrev(hu2013_positive_results_raw, "Hu2013_positive_hits"),
+  compare_source_to_batyrev(grau2023_results_raw, "Grau2023"),
+  compare_source_to_batyrev(song2021_results_raw, "Song2021"),
+  compare_source_to_batyrev(kaluscha2022_fig5b_results_raw, "Kaluscha2022_Fig5b_candidates")
+)
+
+source_overlap_summary <- source_overlap_all %>%
+  dplyr::group_by(source) %>%
+  dplyr::summarise(
+    n_external_proteins = dplyr::n_distinct(protein),
+    n_present_in_batyrev = sum(present_in_batyrev),
+    n_not_present_in_batyrev = sum(!present_in_batyrev),
+    .groups = "drop"
+  ) %>%
+  dplyr::arrange(source)
+
+source_overlap_summary
+
+source_overlap_call_counts <- source_overlap_all %>%
+  dplyr::filter(present_in_batyrev) %>%
+  dplyr::count(
+    source,
+    Batyrev_methylation_call,
+    name = "n_proteins"
+  ) %>%
+  dplyr::arrange(source, dplyr::desc(n_proteins))
+
+source_overlap_call_counts %>%
+  print(n = Inf)
+
+source_overlap_detail <- source_overlap_all %>%
+  dplyr::filter(present_in_batyrev) %>%
+  dplyr::arrange(source, protein)
+
+source_overlap_detail %>%
+  dplyr::select(
+    source,
+    protein,
+    Batyrev_methylation_call,
+    n_significant_positive,
+    n_significant_negative,
+    n_not_significant
+  ) %>%
+  print(n = Inf)
+
+
+our_unique_summary <- our_unique_proteins %>%
+  dplyr::count(
+    Batyrev_methylation_call,
+    name = "n_proteins"
+  ) %>%
+  dplyr::arrange(dplyr::desc(n_proteins))
+
+our_unique_summary
+
+
+
+source_overlap_detail %>%
+  dplyr::filter(
+    source == "Grau2023",
+    Batyrev_methylation_call == "significant_higher_methylation"
+  ) %>%
+  dplyr::select(
+    source,
+    protein,
+    Batyrev_methylation_call,
+    n_significant_positive,
+    n_significant_negative,
+    n_not_significant
+  ) %>%
+  dplyr::arrange(protein) %>%
+  print(n = Inf)
+
+motif_significance_table <- motif_significance_table %>%
+  mutate(
+    net_significance_score =
+      significant_positive - significant_negative,
+    .after = total_comparisons
+  )
+
+print(motif_significance_table[motif_significance_table$significant_positive > 0,], n = Inf)
+
+
+
+is_sig <- stratified_test_qc_n50_best_experiments_FDR$q_value_two_sided < 0.05
+is_positive <- stratified_test_qc_n50_best_experiments_FDR$observed_S_statistic > 0  
+  
+is_interesting <- stratified_test_qc_n50_best_experiments_FDR$protein %in% stratified_test_qc_n50_best_experiments_FDR$protein[is_sig & is_positive]
+
+
+print(x = stratified_test_qc_n50_best_experiments_FDR[is_interesting,],n = 100)
