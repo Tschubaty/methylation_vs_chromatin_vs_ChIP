@@ -498,6 +498,32 @@ stratified_test_qc_n50_best_experiments_FDR <- readxl::read_excel(
 )
 
 
+library(dplyr)
+
+stratified_test_qc_n50_best_experiments_FDR <- 
+  stratified_test_qc_n50_best_experiments_FDR %>%
+  filter(
+    usable_percentage1 >= 10,
+    usable_percentage2 >= 10
+  ) %>%
+  mutate(
+    q_value_two_sided = p.adjust(
+      p_value_two_sided,
+      method = "BH"
+    )
+  )
+
+cat(
+  "Original rows:",
+  nrow(stratified_test_qc_n50_best_experiments_FDR),
+  "\nFiltered rows:",
+  nrow(stratified_test_qc_n50_best_experiments_FDR),
+  "\nRemoved rows:",
+  nrow(stratified_test_qc_n50_best_experiments_FDR) -
+    nrow(stratified_test_qc_n50_best_experiments_FDR),
+  "\n"
+)
+
 batyrev_results <- stratified_test_qc_n50_best_experiments_FDR %>%
   dplyr::filter(
     tested,
@@ -622,7 +648,13 @@ batyrev_results
 
 library(dplyr)
 library(purrr)
-
+library(tidyverse)
+library(tidyr)
+library(stringr)
+library(purrr)
+library(readxl)
+library(readr)
+library(glue)
 # -------------------------------------------------------------------------
 # Prepare one protein-keyed table per source
 # No call labels are recoded or changed.
@@ -867,14 +899,6 @@ source_overlap_detail %>%
   dplyr::arrange(protein) %>%
   print(n = Inf)
 
-motif_significance_table <- motif_significance_table %>%
-  mutate(
-    net_significance_score =
-      significant_positive - significant_negative,
-    .after = total_comparisons
-  )
-
-print(motif_significance_table[motif_significance_table$significant_positive > 0,], n = Inf)
 
 
 
@@ -885,3 +909,171 @@ is_interesting <- stratified_test_qc_n50_best_experiments_FDR$protein %in% strat
 
 
 print(x = stratified_test_qc_n50_best_experiments_FDR[is_interesting,],n = 100)
+
+
+print(x = stratified_test_qc_n50_best_experiments_FDR[
+  is_interesting,c("protein","chromatin_state","biosample1","biosample2",
+                   # "n_sample1","n_sample2","n_both" ,
+                   "observed_S_statistic","jaccard_index",
+                   "usable_percentage1",
+                   #"no_motif_percentage1","no_cg_percentage1"  ,
+                   "usable_percentage2",
+                   #"no_motif_percentage2","no_cg_percentage2"  , 
+                   "q_value_two_sided" ) ],n = 100)
+
+################### investiagte consistency:
+
+library(dplyr)
+library(stringr)
+library(glue)
+
+df <- stratified_test_qc_n50_best_experiments_FDR
+
+# Classify every comparison
+direction_data <- df %>%
+  mutate(
+    protein = str_extract(motif, "^[^.]+"),
+    direction = case_when(
+      q_value_two_sided < 0.05 & observed_S_statistic > 0 ~ "positive",
+      q_value_two_sided < 0.05 & observed_S_statistic < 0 ~ "negative",
+      TRUE ~ "not_significant"
+    )
+  )
+
+# Summarize results for each motif
+motif_consistency_table <- direction_data %>%
+  group_by(protein, motif) %>%
+  summarise(
+    total_comparisons = n(),
+    significant_positive = sum(direction == "positive"),
+    significant_negative = sum(direction == "negative"),
+    not_significant = sum(direction == "not_significant"),
+    significant_total =
+      significant_positive + significant_negative,
+    
+    consistency_status = case_when(
+      significant_positive > 0 & significant_negative > 0 ~
+        "conflicting directions",
+      significant_positive > 0 ~
+        "positive only",
+      significant_negative > 0 ~
+        "negative only",
+      TRUE ~
+        "no significant result"
+    ),
+    
+    net_direction_score =
+      significant_positive - significant_negative,
+    
+    dominant_direction_consistency = case_when(
+      significant_total == 0 ~ NA_real_,
+      TRUE ~
+        pmax(significant_positive, significant_negative) /
+        significant_total
+    ),
+    
+    .groups = "drop"
+  ) %>%
+  arrange(consistency_status, protein)
+
+
+
+overall_consistency <- motif_consistency_table %>%
+  summarise(
+    total_motifs = n(),
+    motifs_with_significant_result =
+      sum(significant_total > 0),
+    
+    positive_only =
+      sum(consistency_status == "positive only"),
+    
+    negative_only =
+      sum(consistency_status == "negative only"),
+    
+    conflicting =
+      sum(consistency_status == "conflicting directions"),
+    
+    no_significant_result =
+      sum(consistency_status == "no significant result"),
+    
+    consistent =
+      positive_only + negative_only,
+    
+    percent_consistent_among_significant =
+      100 * consistent / motifs_with_significant_result,
+    
+    percent_conflicting_among_significant =
+      100 * conflicting / motifs_with_significant_result
+  )
+
+overall_consistency
+
+
+conflicting_motifs <- motif_consistency_table %>%
+  filter(consistency_status == "conflicting directions") %>%
+  select(protein, motif)
+
+conflicting_details <- direction_data %>%
+  semi_join(
+    conflicting_motifs,
+    by = c("protein", "motif")
+  ) %>%
+  filter(direction != "not_significant") %>%
+  select(
+    protein,
+    motif,
+    chromatin_state,
+    biosample1,
+    experiment_id1,
+    biosample2,
+    experiment_id2,
+    usable_percentage1,
+    usable_percentage2,
+    n_sample1,
+    n_sample2,
+    n_both,
+    observed_S_statistic,
+    p_value_two_sided,
+    q_value_two_sided,
+    direction
+  ) %>%
+  arrange(
+    protein,
+    motif,
+    direction,
+    chromatin_state,
+    biosample1,
+    biosample2
+  )
+
+print(conflicting_details, n = Inf, width = Inf)
+
+motif_consistency_table %>%
+  filter(consistency_status == "conflicting directions") %>%
+  select(
+    protein,
+    motif,
+    total_comparisons,
+    significant_positive,
+    significant_negative,
+    not_significant,
+    net_direction_score,
+    dominant_direction_consistency
+  ) %>%
+  print(n = Inf, width = Inf)
+
+
+# Identity of the higher-methylation protein in the final state-1 analysis
+state1_protein_results %>%
+  filter(protein_result == "significant_higher_methylation") %>%
+  print(n = Inf, width = Inf)
+
+literature_comparison %>%
+  count(
+    source,
+    literature_call,
+    Batyrev_methylation_call,
+    name = "n_proteins"
+  ) %>%
+  arrange(source, literature_call, Batyrev_methylation_call) %>%
+  print(n = Inf, width = Inf)
